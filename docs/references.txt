@@ -1,0 +1,7 @@
+Sources:
+ - http://www.jamesmolloy.co.uk [main]
+ - https://littleosbook.github.io/
+ - https://en.wikipedia.org/wiki/X86
+ - https://en.wikibooks.org/wiki/Operating_System_Design
+ - https://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf
+ - https://www.fountainware.com/EXPL/vga_color_palettes.htm
