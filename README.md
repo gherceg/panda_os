@@ -17,7 +17,7 @@ which is an open-source assembler for x86 architectures.
 
 #### Linux
 
-#### MacOS
+#### macOS
 
 Homebrew is used in this example, but feel free to use a package manager of your choice.
 
