@@ -1,5 +1,4 @@
-#Panda OS
-
+# Panda OS
 ## The Goal
 Started by Josue Rivera, we hope to build upon his work to create an educational 
 operating system for the students of UMass Dartmouth. We aim to make 
