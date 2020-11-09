@@ -11,12 +11,17 @@ static void init_idt();
 static void gdt_set_gate(int32,uint32,uint32,uint8,uint8);
 static void idt_set_gate(uint8,uint32,uint16,uint8);
 
+/** 5 entries total
+ need code and data segments for both user and kernel modes
+ and lastly need a null entry 
+*/
 gdt_entry_t gdt_entries[5];
 gdt_ptr_t   gdt_ptr;
 idt_entry_t idt_entries[256];
 idt_ptr_t   idt_ptr;
 
 extern isr_t interrupt_handlers[];
+
 
 void init_descriptor_tables() {
 
@@ -26,19 +31,31 @@ void init_descriptor_tables() {
     memset(&interrupt_handlers, 0, sizeof(isr_t)*256);
 }
 
+/**
+ Global Descriptor Table
+    Responsible for listing segment descriptors
+    Segmentation is built into x86 architecture
+ */
 static void init_gdt() {
+    // this special structure is needed to tell the CPU where to find the GDT
     gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
     gdt_ptr.base  = (uint32)&gdt_entries;
 
-    gdt_set_gate(0, 0, 0, 0, 0);               
-    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
-    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
-    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
+    gdt_set_gate(0, 0, 0, 0, 0); // Null segment     
+    // Note the only difference below is the 'access' value
+    // sets privilege mode and data type           
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
+    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
+    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // Data mode code segment
 
+    // defined in gdt.s
     gdt_flush((uint32)&gdt_ptr);
 }
 
+/**
+ Set values for one GDT entry
+*/
 static void gdt_set_gate(int32 num, uint32 base, uint32 limit, uint8 access, uint8 gran) {
     gdt_entries[num].base_low    = (base & 0xFFFF);
     gdt_entries[num].base_middle = (base >> 16) & 0xFF;
@@ -51,6 +68,12 @@ static void gdt_set_gate(int32 num, uint32 base, uint32 limit, uint8 access, uin
     gdt_entries[num].access      = access;
 }
 
+/**
+ Interrupt Descriptor Table
+ maps interrupts (e.g. keyboard input) to handlers (functions that react to the interrupt)
+ IMPORTANT: an entry is needed for all 256 possible interrupts (0/Null works)
+ Otherwise, the processor will not know what to do and reset
+*/
 static void init_idt() {
     idt_ptr.limit = sizeof(idt_entry_t) * 256 -1;
     idt_ptr.base  = (uint32)&idt_entries;
@@ -117,6 +140,7 @@ static void init_idt() {
     idt_set_gate(46, (uint32)irq14, 0x08, 0x8E);
     idt_set_gate(47, (uint32)irq15, 0x08, 0x8E);
 
+    // defined in gdt.s
     idt_flush((uint32)&idt_ptr);
 }
 
@@ -127,6 +151,7 @@ static void idt_set_gate(uint8 num, uint32 base, uint16 sel, uint8 flags) {
     idt_entries[num].sel     = sel;
     idt_entries[num].always0 = 0;
    
-   
+    // We must uncomment the OR below when we get to using user-mode.
+    // It sets the interrupt gate's privilege level to 3.
     idt_entries[num].flags   = flags /* | 0x60 */;
 }

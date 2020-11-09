@@ -1,3 +1,9 @@
+# This Makefile will compile every file in SOURCES, then link them together into one ELF binary, 'kernel'. It uses a linker script, 'link.ld' to do this
+
+# The C and C++ rules are already setup by default.
+# The only one that needs changing is the assembler
+# rule, as we use nasm instead of GNU as.
+
 SOURCES=boot.o main.o screen/monitor.o utils/asm.o utils/mem.o utils/string.o utils/panic.o utils/ordered_array.o tb_itr/descriptor_tables.o tb_itr/isr.o tb_itr/interrupt.o tb_itr/gdt.o tb_itr/timer.o mm/kheap.o mm/paging.o fs/fs.o fs/initrd.o mm/task.o mm/process.o
 
 CFLAGS=-nostdlib -nostdinc -fno-builtin -fno-stack-protector -m32
