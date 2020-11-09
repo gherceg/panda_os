@@ -18,6 +18,12 @@ which is an open-source assembler for x86 architectures.
 
 #### Linux
 
+Install NASM:\
+`sudo apt install nasm`
+
+Install genisoimage:\
+`sudo apt install genisoimage`
+
 #### macOS
 
 Homebrew is used in this example, but feel free to use a package manager of your choice.
