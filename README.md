@@ -24,6 +24,13 @@ Install NASM:\
 Install genisoimage:\
 `sudo apt install genisoimage`
 
+Compile any changed files:\
+`gcc -m32 -c <file.c>`
+
+Run build script:\
+`source ./build_panda.sh`
+
+
 #### macOS
 
 Homebrew is used in this example, but feel free to use a package manager of your choice.
@@ -38,6 +45,10 @@ From the root directory of the project, type the following to run the OS:\
 `qemu-system-x86_64 -cdrom panda.iso`
 
 #### Windows
+
+From C:\Program Files\Qemu:\
+I happen to be using Ubuntu-20.04 for my WSL, but be sure to adjust this path as needed.\
+`qemu-system-x86_64.exe -cdrom \\wsl$\Ubuntu-20.04\home\<user>\path\to\panda_os\panda.iso`
 
 A 100% Windows development workflow has not been added yet. The easiest path forward 
 is to use the Windows Subsystem for Linux for OS development, and then run bochs from the Windows side. 

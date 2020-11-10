@@ -1,6 +1,6 @@
 megs:            32
-romimage:        file="C:\Users\josue\OneDrive\Documents\UMass Dartmouth\Classes\Spring 2020\CIS 573\Panda OS v.2\Bochs-2.6.11\BIOS-bochs-latest"
-vgaromimage:     file="C:\Users\josue\OneDrive\Documents\UMass Dartmouth\Classes\Spring 2020\CIS 573\Panda OS v.2\Bochs-2.6.11\VGABIOS-elpin-2.40"
+romimage:        file=\\wsl$\Ubuntu-20.04\home\graham\panda_os\Bochs-2.6.16\BIOS-bochs-latest
+vgaromimage:     file=\\wsl$\Ubuntu-20.04\home\graham\panda_os\Bochs-2.6.16\VGABIOS-elpin-2.40
 ata0-master:     type=cdrom, path=panda.iso, status=inserted
 boot:            cdrom
 log:             bochslog.txt

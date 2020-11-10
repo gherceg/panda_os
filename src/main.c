@@ -20,10 +20,11 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 
 	act_itr();
 	//asm volatile("sti");
-	init_timer(100);
+
+    // start PIT - number specified equals interrupts per second
+	init_timer(1);
 
 	monitor_write("Welcome to Josue's Panda OS\n");
-
 	monitor_write("\n");
 
     ASSERT(mboot_ptr->mods_count > 0); //check to see if initrd is installed
