@@ -4,7 +4,13 @@
 # The only one that needs changing is the assembler
 # rule, as we use nasm instead of GNU as.
 
-SOURCES=boot.o main.o screen/monitor.o utils/asm.o utils/mem.o utils/string.o utils/panic.o utils/ordered_array.o tb_itr/descriptor_tables.o tb_itr/isr.o tb_itr/interrupt.o tb_itr/gdt.o tb_itr/timer.o drivers/keyboard.o mm/kheap.o mm/paging.o fs/fs.o fs/initrd.o mm/task.o mm/process.o
+SOURCES=boot.o main.o \
+drivers/keyboard.o \
+fs/fs.o fs/initrd.o \
+mm/kheap.o mm/paging.o mm/process.o mm/task.o \
+screen/monitor.o \
+tb_itr/descriptor_tables.o tb_itr/gdt.o tb_itr/interrupt.o tb_itr/isr.o tb_itr/timer.o \
+utils/asm.o utils/mem.o utils/ordered_array.o utils/panic.o utils/string.o
 
 CFLAGS=-nostdlib -nostdinc -fno-builtin -fno-stack-protector -m32
 LDFLAGS=-Tlink.ld -melf_i386
