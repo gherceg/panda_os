@@ -1,6 +1,6 @@
 #include "task.h"
-#include "../mm/paging.h"
-#include "../mm/kheap.h"
+#include "../memory/paging.h"
+#include "../memory/kheap.h"
 
 
 volatile task_t *current_task;

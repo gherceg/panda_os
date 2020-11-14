@@ -3,7 +3,7 @@
 #define PAGING_H
 
 #include "../tools.h"
-#include "../tb_itr/isr.h"
+#include "../interrupts/isr.h"
 
 typedef struct page {
     uint32 present    : 1; 
