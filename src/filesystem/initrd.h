@@ -3,7 +3,7 @@
 #define INITRD_H
 
 #include "../tools.h"
-#include "../mm/kheap.h"
+#include "../memory/kheap.h"
 #include "fs.h"
 
 typedef struct {

@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "../tools.h"
+#include "../../tools.h"
 
 /**
  * The Programmable Interval Timer (PIT) is responsible for interrupting the CPU at a specified interval.

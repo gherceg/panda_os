@@ -1,7 +1,7 @@
 #include "timer.h"
-#include "isr.h"
-#include "../screen/monitor.h"
-#include "../mm/task.h"
+#include "../../interrupts/isr.h"
+#include "../../screen/monitor.h"
+#include "../../process/task.h"
 
 uint32 tick = 0;
 

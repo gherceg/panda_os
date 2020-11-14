@@ -1,6 +1,6 @@
 #include "keyboard.h"
-#include "../tb_itr/isr.h"
-#include "../screen/monitor.h"
+#include "../../interrupts/isr.h"
+#include "../../screen/monitor.h"
 
 /**
  * A keyboard interfaces with a Keyboard Controller to specify when and what key is pressed/released.

@@ -2,7 +2,7 @@
 #define TASK_H
 
 #include "../tools.h"
-#include "../mm/paging.h"
+#include "../memory/paging.h"
 
 typedef struct task {
     int id;               
