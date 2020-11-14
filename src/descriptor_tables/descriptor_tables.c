@@ -1,7 +1,7 @@
 
 #include "../tools.h"
 #include "descriptor_tables.h"
-#include "isr.h"
+#include "../interrupts/isr.h"
 
 extern void gdt_flush(uint32);
 extern void idt_flush(uint32);
