@@ -1,7 +1,7 @@
-
+// Defines the interface for and structures relating to the virtual file system.
 #include "fs.h"
 
-fs_node_t *fs_root = 0;
+fs_node_t *fs_root = 0; // File system root
 
 uint32 read_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
    
