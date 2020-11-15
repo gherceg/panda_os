@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "keyboard_mapping.h"
 #include "../../interrupts/isr.h"
 #include "../../screen/monitor.h"
 
@@ -18,9 +19,11 @@ static void keyboard_handler(registers_t regs) {
 
     // the highest bit is used to communicate if key was pressed (make) or released (break)
     if (scan_code & 0x80) {
-        monitor_write("key released\n");
+        // monitor_write("key released\n");
     } else {
-        monitor_write("key pressed\n");
+        char key_pressed = keymap.base[scan_code];
+        // TODO: write to a file or chunk of memory
+        monitor_put(key_pressed);
     }
 }
 
