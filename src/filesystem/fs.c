@@ -4,7 +4,7 @@
 fs_node_t *fs_root = 0; // File system root
 
 uint32 read_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
-   
+    // Has the node got a read callback?
     if (node->read != 0)
         return node->read(node, offset, size, buffer);
     else
