@@ -6,7 +6,7 @@
 
 SOURCES=boot.o main.o \
 descriptor_tables/descriptor_tables.o descriptor_tables/gdt.o descriptor_tables/idt.o \
-drivers/keyboard/keyboard.o drivers/timer/timer.o \
+drivers/keyboard/keyboard.o drivers/keyboard/keyboard_mapping.o drivers/timer/timer.o \
 filesystem/fs.o filesystem/initrd.o \
 memory/kheap.o memory/paging.o \
 process/process.o process/task.o \
