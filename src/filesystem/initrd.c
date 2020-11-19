@@ -22,6 +22,12 @@ static uint32 initrd_read(fs_node_t *node, uint32 offset, uint32 size, uint8 *bu
     return size;
 }
 
+/*
+static void *initrd_mkdir(fs_node_t *node, char *name) {
+    if (node == initrd_root && !strcmp(name, "dev"))
+}
+*/
+
 static struct dirent *initrd_readdir(fs_node_t *node, uint32 index) {
     if (node == initrd_root && index == 0) {
       strcpy(dirent.name, "dev");
@@ -40,7 +46,7 @@ static struct dirent *initrd_readdir(fs_node_t *node, uint32 index) {
 }
 
 static fs_node_t *initrd_finddir(fs_node_t *node, char *name) {
-    if (node == initrd_root && !strcmp(name, "dev") )
+    if (node == initrd_root && !strcmp(name, "dev"))
         return initrd_dev;
 
     int i;

@@ -31,9 +31,22 @@ void close_fs(fs_node_t *node) {
         return node->close(node);
 }
 
+void remove_fs(fs_node_t *node) {
+    
+    if (node->remove != 0)
+        return node->remove(node);
+}
+
+void *mkdir(fs_node_t *node, char *name) {
+    if ((node->flags&0x7) == FS_DIRECTORY && node->readdir != 0)
+        return node->mkdir(node, index);
+    else
+        return 0;
+}
+
 struct dirent *readdir_fs(fs_node_t *node, uint32 index) {
    
-    if ( (node->flags&0x7) == FS_DIRECTORY && node->readdir != 0 )
+    if ((node->flags&0x7) == FS_DIRECTORY && node->readdir != 0)
         return node->readdir(node, index);
     else
         return 0;
@@ -41,8 +54,9 @@ struct dirent *readdir_fs(fs_node_t *node, uint32 index) {
 
 fs_node_t *finddir_fs(fs_node_t *node, char *name) {
     
-    if ((node->flags&0x7) == FS_DIRECTORY && node->finddir != 0 )
+    if ((node->flags&0x7) == FS_DIRECTORY && node->finddir != 0)
         return node->finddir(node, name);
     else
         return 0;
 }
+

@@ -18,6 +18,9 @@ typedef uint32 (*read_type_t)(struct fs_node*,uint32,uint32,uint8*);
 typedef uint32 (*write_type_t)(struct fs_node*,uint32,uint32,uint8*);
 typedef void (*open_type_t)(struct fs_node*);
 typedef void (*close_type_t)(struct fs_node*);
+typedef void (*remove_type_t)(struct fs_node*);
+typedef void (*mkdir_type_t)(struct fs_node*, char *name);
+typedef void (*rmdir_type_t)(struct fs_node*, char *name);
 typedef struct dirent * (*readdir_type_t)(struct fs_node*,uint32);
 typedef struct fs_node * (*finddir_type_t)(struct fs_node*,char *name);
 
@@ -34,6 +37,9 @@ typedef struct fs_node {
     write_type_t write;
     open_type_t open;
     close_type_t close;
+    remove_type_t remove;
+    mkdir_type_t mkdir;
+    rmdir_type_t rmdir;
     readdir_type_t readdir; // Returns the n'th child of a directory.
     finddir_type_t finddir; // Try to find a child in a directory by name.
     struct fs_node *ptr; // Used by mountpoints and symlinks
@@ -42,6 +48,7 @@ typedef struct fs_node {
 struct dirent { // Returned by readdir call
     char name[128]; // File name
     uint32 ino;     // Inode number
+    //int type;       // Entry type
 };
 
 extern fs_node_t *fs_root; // File system root
@@ -54,6 +61,7 @@ uint32 read_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer);
 uint32 write_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer);
 void open_fs(fs_node_t *node, uint8 read, uint8 write);
 void close_fs(fs_node_t *node);
+void remove_fs(fs_node_t *node);
 struct dirent *readdir_fs(fs_node_t *node, uint32 index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 
