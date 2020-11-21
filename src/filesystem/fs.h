@@ -18,9 +18,9 @@ typedef uint32 (*read_type_t)(struct fs_node*,uint32,uint32,uint8*);
 typedef uint32 (*write_type_t)(struct fs_node*,uint32,uint32,uint8*);
 typedef void (*open_type_t)(struct fs_node*);
 typedef void (*close_type_t)(struct fs_node*);
-typedef void (*remove_type_t)(struct fs_node*);
+typedef void (*remove_type_t)(char *name);
 typedef void (*mkdir_type_t)(struct fs_node*, char *name);
-typedef void (*rmdir_type_t)(struct fs_node*, char *name);
+typedef void (*rmdir_type_t)(char *name);
 typedef struct dirent * (*readdir_type_t)(struct fs_node*,uint32);
 typedef struct fs_node * (*finddir_type_t)(struct fs_node*,char *name);
 
@@ -48,7 +48,6 @@ typedef struct fs_node {
 struct dirent { // Returned by readdir call
     char name[128]; // File name
     uint32 ino;     // Inode number
-    //int type;       // Entry type
 };
 
 extern fs_node_t *fs_root; // File system root
@@ -62,6 +61,8 @@ uint32 write_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer);
 void open_fs(fs_node_t *node, uint8 read, uint8 write);
 void close_fs(fs_node_t *node);
 void remove_fs(fs_node_t *node);
+void mkdir_fs(fs_node_t *node, char *name);
+void rmdir_fs(fs_node_t *node, char *name);
 struct dirent *readdir_fs(fs_node_t *node, uint32 index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 

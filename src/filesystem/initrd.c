@@ -24,7 +24,9 @@ static uint32 initrd_read(fs_node_t *node, uint32 offset, uint32 size, uint8 *bu
 
 /*
 static void *initrd_mkdir(fs_node_t *node, char *name) {
-    if (node == initrd_root && !strcmp(name, "dev"))
+}
+
+static void *initrd_rmdir(char *name) {
 }
 */
 
@@ -70,6 +72,9 @@ fs_node_t *initialise_initrd(uint32 location) {
     initrd_root->write = 0;
     initrd_root->open = 0;
     initrd_root->close = 0;
+    initrd_root->remove = 0;
+    initrd_root->mkdir = 0;
+    initrd_root->rmdir = 0;
     initrd_root->readdir = &initrd_readdir;
     initrd_root->finddir = &initrd_finddir;
     initrd_root->ptr = 0;
@@ -84,6 +89,9 @@ fs_node_t *initialise_initrd(uint32 location) {
     initrd_dev->write = 0;
     initrd_dev->open = 0;
     initrd_dev->close = 0;
+    initrd_dev->remove = 0;
+    initrd_dev->mkdir = 0;
+    initrd_dev->rmdir = 0;
     initrd_dev->readdir = &initrd_readdir;
     initrd_dev->finddir = &initrd_finddir;
     initrd_dev->ptr = 0;
@@ -107,6 +115,9 @@ fs_node_t *initialise_initrd(uint32 location) {
         root_nodes[i].flags = FS_FILE;
         root_nodes[i].read = &initrd_read;
         root_nodes[i].write = 0;
+        root_nodes[i].remove = 0;
+        root_nodes[i].mkdir = 0;
+        root_nodes[i].rmdir = 0;
         root_nodes[i].readdir = 0;
         root_nodes[i].finddir = 0;
         root_nodes[i].open = 0;

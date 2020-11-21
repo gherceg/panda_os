@@ -44,6 +44,13 @@ void *mkdir(fs_node_t *node, char *name) {
         return 0;
 }
 
+void *rmdir(char *name) {
+    if ((node->flags&0x7) == FS_DIRECTORY && node->readdir != 0)
+        return node->mkdir(node, index);
+    else
+        return 0;
+}
+
 struct dirent *readdir_fs(fs_node_t *node, uint32 index) {
    
     if ((node->flags&0x7) == FS_DIRECTORY && node->readdir != 0)
