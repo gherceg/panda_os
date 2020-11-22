@@ -6,6 +6,10 @@
 #include "../memory/kheap.h"
 #include "fs.h"
 
+/**
+ * Initialize Ram Disc (initrd) is used to create a simple filesystem in memory for the kernel to use on startup
+ */
+
 typedef struct {
 	uint32 nfiles;
 } initrd_header_t;
