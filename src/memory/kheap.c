@@ -16,11 +16,11 @@ uint32 kmalloc_int(uint32 sz, int align, uint32 *phys) {
         return (uint32)addr;
     } else {
         if (align == 1 && (placement_address & 0xFFFFF000)) {
-       
+            // align the address if not already
             placement_address &= 0xFFFFF000;
             placement_address += 0x1000;
         }
-
+        // will need to provide the physical address when cloning a page (used for forking processes)
         if (phys) {
             *phys = placement_address;
         }

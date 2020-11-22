@@ -5,14 +5,22 @@
 #include "../tools.h"
 #include "../interrupts/isr.h"
 
+/**
+ * The Memory Managemment Unit (MMU) is responsible for mapping the virtual address space to the physical address space
+ * This can be achieved through either segmenting or paging. Paging is the modern approach.
+ * On 32 bit x86 architecture, a page is a 4KB block in the virtual address space mapped to a frame in the physical address space
+ * 32 bit x86 supports 32 bit addressing for up to 4GB of virtual memory
+ * 64 bit x86 supports 48 bit addressing for up to 256 TB of virtual memory
+ */
+
 typedef struct page {
-    uint32 present    : 1; 
-    uint32 rw         : 1; 
-    uint32 user       : 1; 
-    uint32 accessed   : 1; 
-    uint32 dirty      : 1; 
-    uint32 unused     : 7; 
-    uint32 frame      : 20;
+    uint32 present    : 1; // page present in memory
+    uint32 rw         : 1; // read-only if clear, read-write if set
+    uint32 user       : 1; // kernel mode if clear
+    uint32 accessed   : 1; // accessed since last refresh
+    uint32 dirty      : 1; // written to since last refresh
+    uint32 unused     : 7; // unused/reserved bits
+    uint32 frame      : 20; // frame address (shifted right 12 bits)
 } page_t;
 
 typedef struct page_table {
@@ -22,18 +30,31 @@ typedef struct page_table {
 typedef struct page_directory {
 
     page_table_t *tables[1024];
-
-    uint32 tablesPhysical[1024];
-
+    // physical addresses of page tables, useful for loading into CR3 register
+    uint32 tables_physical[1024];
+    // address of physical address table
     uint32 physicalAddr;
 } page_directory_t;
 
+/**
+ * sets up environment, page directories, and enables paging
+ */
 void initialise_paging();
 
+/**
+ * Load the new page directory into the CR3 register
+ */
 void switch_page_directory(page_directory_t *new);
 
+/**
+ * Retrieve page for address
+ * If make == 1, create page if it does not already exist
+ */
 page_t *get_page(uint32 address, int make, page_directory_t *dir);
 
+/**
+ * Handler for page faults
+ */
 void page_fault(registers_t regs);
 
 page_directory_t *clone_directory(page_directory_t *src);

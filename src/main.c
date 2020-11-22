@@ -12,13 +12,24 @@
 extern uint32 placement_address; //fs start
 uint32 initial_esp;
 
+void force_page_fault();
+void test_heap();
+
 int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 
-	//Set up
+	// setup
 	initial_esp = initial_stack;
 	init_descriptor_tables();
 	monitor_clear();
 
+    // comment out initialise_paging if testing heap
+    // test_heap();
+    initialise_paging();
+
+    // register handler for IRQ1
+    install_keyboard_driver(); 
+
+    // enables interrupts
 	act_itr();
 
     // start PIT - number specified equals interrupts per second
@@ -27,21 +38,16 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 	monitor_write("Welcome to Josue's Panda OS\n");
 	monitor_write("\n");
 
-    ASSERT(mboot_ptr->mods_count > 0); //check to see if initrd is installed
+    // ASSERT(mboot_ptr->mods_count > 0); //check to see if initrd is installed
 
 	uint32 initrd_location = *((uint32*)(mboot_ptr->mods_addr));
 	uint32 initrd_end = (*(uint32*)(mboot_ptr->mods_addr+4));
 	placement_address = initrd_end;
 
-    asm volatile ("int $0x3");
-    asm volatile ("int $0x4");
+    // asm volatile ("int $0x3");
+    // asm volatile ("int $0x4");
 
-    // register handler for IRQ1
-    install_keyboard_driver(); 
-    
-	// initialise_paging();
 
-    
 	//initialise_tasking(); //Multi tasking
 
 	// fs_root = initialise_initrd(initrd_location);
@@ -72,4 +78,28 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
     // monitor_write("\n");
 
     return 0;
+}
+
+void force_page_fault() {
+    uint32 *ptr = (uint32*)0xA0000000;
+    uint32 do_page_fault = *ptr;
+}
+
+void test_heap() {
+    uint32 a = kmalloc(8);
+    initialise_paging();
+    uint32 b = kmalloc(8);
+    uint32 c = kmalloc(8);
+    monitor_write("a: ");
+    monitor_write_hex(a);
+    monitor_write(", b: ");
+    monitor_write_hex(b);
+    monitor_write("\nc: ");
+    monitor_write_hex(c);
+
+    kfree((void *)c);
+    kfree((void *)b);
+    uint32 d = kmalloc(12);
+    monitor_write(", d: ");
+    monitor_write_hex(d);
 }
