@@ -1,26 +1,34 @@
 #include "task.h"
 #include "../memory/paging.h"
 #include "../memory/kheap.h"
+#include "../screen/monitor.h"
 
 
+// current running stack
 volatile task_t *current_task;
+// linked list of tasks
 volatile task_t *ready_queue;
 
+// needed to access members of paging.c
 extern page_directory_t *kernel_directory;
 extern page_directory_t *current_directory;
-
-extern void alloc_frame(page_t*, int, int);
 extern uint32 initial_esp;
+extern void alloc_frame(page_t*, int, int);
 extern uint32 read_eip();
 
+// ensures unique pid
 uint32 next_pid = 1;
 
+/**
+ * Kicks off the first process
+ */ 
 void initialise_tasking() {
 
     deact_itr();
 
     move_stack((void*)0xE0000000, 0x2000);
 
+    // setup the root task which is the kernel
     current_task = ready_queue = (task_t*) kmalloc(sizeof(task_t));
     current_task->id = next_pid++;
     current_task->esp = current_task->ebp = 0;
@@ -31,118 +39,169 @@ void initialise_tasking() {
     act_itr();
 }
 
+/**
+ * @param new_stack_start: desired address to move stack to
+ * @param size: size of the stack being moved
+ */ 
 void move_stack(void *new_stack_start, uint32 size) {
 
   uint32 i;
   for(i = (uint32)new_stack_start; i >= ((uint32)new_stack_start-size); i -= 0x1000) {
-
+    // create frames for stack, user mode is sufficient here
     alloc_frame(get_page(i, 1, current_directory), 0 /* User mode */, 1 /* Is writable */ );
   }
   
+  // flush the TLB by writing by reading and writing the page directory address
+  // to partially flush, we could use the invlpg instruction but this is simpler
   uint32 pd_addr;
   asm volatile("mov %%cr3, %0" : "=r" (pd_addr));
   asm volatile("mov %0, %%cr3" : : "r" (pd_addr));
 
+  // get current stack and base pointers to determine offset to apply to new stack
   uint32 old_stack_pointer; asm volatile("mov %%esp, %0" : "=r" (old_stack_pointer));
   uint32 old_base_pointer;  asm volatile("mov %%ebp, %0" : "=r" (old_base_pointer));
 
-  uint32 offset            = (uint32)new_stack_start - initial_esp;
+  uint32 offset = (uint32)new_stack_start - initial_esp;
 
   uint32 new_stack_pointer = old_stack_pointer + offset;
-  uint32 new_base_pointer  = old_base_pointer  + offset;
+  uint32 new_base_pointer = old_base_pointer  + offset;
 
   memcpy((void*)new_stack_pointer, (void*)old_stack_pointer, initial_esp-old_stack_pointer);
 
+  // naive algorithm for updating any base pointers to apply the offset to
+  // assumes any value that falls within the old stacks address space is a base pointer, which isn't necessarily true
+  // TODO: improve this so that only base pointers modified, not data we want to keep
   for(i = (uint32)new_stack_start; i > (uint32)new_stack_start-size; i -= 4) {
     uint32 tmp = * (uint32*)i;
 
-    if (( old_stack_pointer < tmp) && (tmp < initial_esp)) {
+    if ( (old_stack_pointer < tmp) && (tmp < initial_esp) ) {
       tmp = tmp + offset;
       uint32 *tmp2 = (uint32*)i;
       *tmp2 = tmp;
     }
   }
 
+  // update the stack and current base pointer
   asm volatile("mov %0, %%esp" : : "r" (new_stack_pointer));
   asm volatile("mov %0, %%ebp" : : "r" (new_base_pointer));
 }
 
 void switch_task() {
 
-    if (!current_task) return;
+  if (!current_task) {
+    monitor_write("Error: attempted to switch tasks before enabling tasking\n");
+    return;
+  }
 
-    uint32 esp, ebp, eip;
-    asm volatile("mov %%esp, %0" : "=r"(esp));
-    asm volatile("mov %%ebp, %0" : "=r"(ebp));
+  // check if it is necessary to switch
+  if (current_task == ready_queue && current_task->next == 0) {
+    monitor_write("only one task found, not going to switch\n");
+    return;
+  }
 
-    eip = read_eip();
+  uint32 esp, ebp, eip;
+  asm volatile("mov %%esp, %0" : "=r"(esp));
+  asm volatile("mov %%ebp, %0" : "=r"(ebp));
 
-    if (eip == 0x12345) return;
+  eip = read_eip();
 
-    current_task->eip = eip;
-    current_task->esp = esp;
-    current_task->ebp = ebp;
-    
-    current_task = current_task->next;
+  // after read_eip, we could be in one of two states
+  // 1) we received the current instruction pointer and want to continue switching tasks
+  // 2) we have just switched tasks, and because the saved EIP is essentially
+   // -- the instruction after read_eip(), it will seem as if read_eip has just returned
+  // we add a dummy value to the eax (overwriting the actual return value) below to identify the second scenario
+  if (eip == 0x12345) {
+    // the new task has already been setup and started execution
+    monitor_write("parent task found, return\n");
+    return;
+  } 
 
-    if (!current_task) current_task = ready_queue;
+  // before switching, save off current register values
+  current_task->eip = eip;
+  current_task->esp = esp;
+  current_task->ebp = ebp;
 
-    eip = current_task->eip;
-    esp = current_task->esp;
-    ebp = current_task->ebp;
+  // switch
+  current_task = current_task->next;
 
-    current_directory = current_task->page_directory;
+  // if reached the end, go back to the beginning of the queue
+  if (!current_task) current_task = ready_queue;
 
-    asm volatile("         \
-      cli;                 \
-      mov %0, %%ecx;       \
-      mov %1, %%esp;       \
-      mov %2, %%ebp;       \
-      mov %3, %%cr3;       \
-      mov $0x12345, %%eax; \
-      sti;                 \
-      jmp *%%ecx           "
-                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(current_directory->physicalAddr));
+  // strictly for readability below
+  eip = current_task->eip;
+  esp = current_task->esp;
+  ebp = current_task->ebp;
+  // update the current directory
+  current_directory = current_task->page_directory;
+
+  // Here we:
+  // * Stop interrupts so we don't get interrupted.
+  // * Temporarily put the new EIP location in ECX.
+  // * Load the stack and base pointers from the new task struct.
+  // * Change page directory to the physical address (physical_address_of_tables_physical) of the new directory.
+  // * Put a dummy value (0x12345) in EAX so that above we can recognise that we've just
+  // switched task.
+  // * Restart interrupts. The STI instruction has a delay - it doesn't take effect until after
+  // the next instruction.
+  // * Jump to the location in ECX (remember we put the new EIP in there).
+  asm volatile("cli");
+  asm volatile("mov %0, %%ecx" : : "r"(eip));
+  asm volatile("mov %0, %%esp" : : "r"(esp));
+  asm volatile("mov %0, %%ebp" : : "r"(ebp));
+  asm volatile("mov %0, %%cr3" : : "r"(current_directory->physical_address_of_tables_physical));
+  asm volatile("mov $0x12345, %eax");
+  asm volatile("sti");
+  asm volatile("jmp *%ecx");
 }
 
 int fork() {
+  // do not want to get interrupted while modifying kernel structures
+  deact_itr();
 
-    deact_itr();
+  // need to reference the parent task later
+  task_t *parent_task = (task_t*)current_task;
 
-    task_t *parent_task = (task_t*)current_task;
+  page_directory_t *directory = clone_directory(current_directory);
 
-    page_directory_t *directory = clone_directory(current_directory);
+  // Create a new task/process
+  task_t *new_task = (task_t*)kmalloc(sizeof(task_t));
+  new_task->id = next_pid++;
+  new_task->esp = new_task->ebp = 0;
+  new_task->eip = 0;
+  new_task->page_directory = directory;
+  new_task->next = 0;
 
-    task_t *new_task = (task_t*)kmalloc(sizeof(task_t));
+  // add to the end of the task queue
+  task_t *tmp_task = (task_t*)ready_queue;
+  while (tmp_task->next)
+      tmp_task = tmp_task->next;
+  tmp_task->next = new_task;
 
-    new_task->id = next_pid++;
-    new_task->esp = new_task->ebp = 0;
-    new_task->eip = 0;
-    new_task->page_directory = directory;
-    new_task->next = 0;
+  // defined in process.s, quickly 
+  // need to tell the task where to start executing which can be found via the current instruction
+  uint32 eip = read_eip();
 
-    task_t *tmp_task = (task_t*)ready_queue;
-    while (tmp_task->next)
-        tmp_task = tmp_task->next;
-    tmp_task->next = new_task;
+  // at this point we could be either the parent or child task and need to check
+  if (current_task == parent_task) {
 
-    uint32 eip = read_eip();
+    // only setup esp, ebp, and eip for child if we are the parent
+    uint32 esp; asm volatile("mov %%esp, %0" : "=r"(esp));
+    uint32 ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
+    new_task->esp = esp;
+    new_task->ebp = ebp;
+    new_task->eip = eip;
 
-    if (current_task == parent_task) {
-    
-        uint32 esp; asm volatile("mov %%esp, %0" : "=r"(esp));
-        uint32 ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
-        new_task->esp = esp;
-        new_task->ebp = ebp;
-        new_task->eip = eip;
-        act_itr();
+    // all done modifying so interrupts can be reenabled
+    act_itr();
 
-        return new_task->id;
-    } else {
-        return 0;
-    }
+    // parent returns id of newly created child
+    return new_task->id;
+  } else {
+    // child returns 0 to inform caller which process is executing
+    return 0;
+  }
 }
 
 int getpid() {
-    return current_task->id;
+  return current_task->id;
 }

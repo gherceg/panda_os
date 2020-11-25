@@ -32,7 +32,7 @@ mboot:
 
 start:
     ; Load multiboot information:
-    push esp
+    push esp                    ; needed to determine where grub loads the stack
     push ebx
 
     ; Execute the kernel:

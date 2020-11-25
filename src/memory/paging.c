@@ -96,7 +96,7 @@ void initialise_paging() {
     uint32 phys;
     kernel_directory = (page_directory_t*)kmalloc_a(sizeof(page_directory_t));
     memset(kernel_directory, 0, sizeof(page_directory_t));
-    //kernel_directory->physicalAddr = (uint32)kernel_directory->tablesPhysical;
+    kernel_directory->physical_address_of_tables_physical = (uint32)kernel_directory->tables_physical;
 
     // map pages for the kernel heap addresses (creates page tables)
     // we cannot change the placement_address between identity mapping and enabling paging
@@ -130,14 +130,14 @@ void initialise_paging() {
     // we are ready to create the kernel heap
     kheap = create_heap(KHEAP_START, KHEAP_START+KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
 
-    // TODO: figure out why josue would have added this/played around with it
-    //current_directory = clone_directory(kernel_directory);  
-    //switch_page_directory(current_directory); 
+    current_directory = clone_directory(kernel_directory);  
+    
+    switch_page_directory(current_directory); 
 }
 
 void switch_page_directory(page_directory_t *dir) {
     current_directory = dir;
-    asm volatile("mov %0, %%cr3":: "r"(dir->tables_physical));
+    asm volatile("mov %0, %%cr3":: "r"(dir->physical_address_of_tables_physical));
     uint32 cr0;
     asm volatile("mov %%cr0, %0": "=r"(cr0));
     cr0 |= 0x80000000; // enables paging
@@ -173,18 +173,19 @@ void page_fault(registers_t regs) {
     uint32 faulting_address;
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
     
-    int present   = !(regs.err_code & 0x1);
+    int present = !(regs.err_code & 0x1);
     int rw = regs.err_code & 0x2;          
     int us = regs.err_code & 0x4;          
     int reserved = regs.err_code & 0x8;    
     int id = regs.err_code & 0x10;         
 
     monitor_write_sys("Page fault! ( ");
-    if (present) {monitor_write_sys("present ");}
+    monitor_write_hex(regs.err_code);
+    if (present) {monitor_write_sys(" not present ");}
     if (rw) {monitor_write_sys("read-only ");}
     if (us) {monitor_write_sys("user-mode ");}
     if (reserved) {monitor_write_sys("reserved ");}
-    monitor_write_sys(") at 0x");
+    monitor_write_sys(") at ");
     monitor_write_hex(faulting_address);
     monitor_write_sys(" - EIP: ");
     monitor_write_hex(regs.eip);
@@ -192,14 +193,17 @@ void page_fault(registers_t regs) {
     PANIC("Page fault");
 }
 
-static page_table_t *clone_table(page_table_t *src, uint32 *physAddr) {
-    page_table_t *table = (page_table_t*) kmalloc_ap(sizeof(page_table_t), physAddr);
+/**
+ * Used when cloning a directory. Each table (and their pages/frames) need to cloned.
+ */
+static page_table_t *clone_table(page_table_t *src, uint32 *physical_address) {
+    // create a new blank page table
+    page_table_t *table = (page_table_t*) kmalloc_ap(sizeof(page_table_t), physical_address);
     memset(table, 0, sizeof(page_directory_t));
 
-    int i;
-    for (i = 0; i < 1024; i++) {
+    for (int i = 0; i < 1024; i++) {
         if (src->pages[i].frame) {
-    
+
             alloc_frame(&table->pages[i], 0, 0);
     
             if (src->pages[i].present) table->pages[i].present = 1;
@@ -207,37 +211,46 @@ static page_table_t *clone_table(page_table_t *src, uint32 *physAddr) {
             if (src->pages[i].user) table->pages[i].user = 1;
             if (src->pages[i].accessed) table->pages[i].accessed = 1;
             if (src->pages[i].dirty) table->pages[i].dirty = 1;
-    
+            // copy_page_physical lives in process.s
+            // responsible for physically copying contents of one frame into another
+            // NOTE: this involves disabling paging
             copy_page_physical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
         }
     }
     return table;
 }
 
+/**
+ * Used when creating a new process since it needs a new page directory
+ * Certain page tables need to be linked like the kernel in case there are changes that should apply to all processes
+ * Other page tables need only be copied, which clone_table() is for
+ */
 page_directory_t *clone_directory(page_directory_t *src) {
-    uint32 phys;
+    uint32 physical_address;
     
-    page_directory_t *dir = (page_directory_t*) kmalloc_ap(sizeof(page_directory_t), &phys);
+    // create a new blank page directory
+    page_directory_t *dir = (page_directory_t*) kmalloc_ap(sizeof(page_directory_t), &physical_address);
     memset(dir, 0, sizeof(page_directory_t));
 
+    // now that a new page directory has been created, we need to set the physical address of the tables_physical member
+    // this is needed to properly load the CR3 register
     uint32 offset = (uint32)dir->tables_physical - (uint32)dir;
+    dir->physical_address_of_tables_physical = physical_address + offset;
 
-    dir->physicalAddr = phys + offset;
-
-    int i;
-    for (i = 0; i < 1024; i++) {
+    // copy/link depending on the page table
+    for (int i = 0; i < 1024; i++) {
         if (!src->tables[i])
             continue;
 
+        // check if the page table is in the kernel directory
         if (kernel_directory->tables[i] == src->tables[i]) {
-    
+            // link to the kernel page table
             dir->tables[i] = src->tables[i];
             dir->tables_physical[i] = src->tables_physical[i];
         } else {
-    
-            uint32 phys;
-            dir->tables[i] = clone_table(src->tables[i], &phys);
-            dir->tables_physical[i] = phys | 0x07;
+            // create a copy since it will be potentially modified
+            dir->tables[i] = clone_table(src->tables[i], &physical_address);
+            dir->tables_physical[i] = physical_address | 0x07;
         }
     }
     return dir;
