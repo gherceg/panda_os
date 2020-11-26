@@ -20,7 +20,7 @@ void force_page_fault();
 void test_heap();
 void print_filesystem_contents();
 
-// kernel entry point
+
 int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 
 	// setup
@@ -28,31 +28,47 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 	init_descriptor_tables();
 	monitor_clear();
 
+    // start PIT - number specified equals interrupts per second
+	// init_timer(1);
+
     // reserve beginning of memory for filesystem befor enabling paging
-    uint32 initrd_location = create_filesystem(mboot_ptr);
+    // uint32 initrd_location = create_filesystem(mboot_ptr);
 
     // comment out initialise_paging if testing heap
     // test_heap();
     initialise_paging();
 
+    // mulitasking
+    // initialise_tasking();
+
     // create kernel in-memory filesystem
-    fs_root = initialise_initrd(initrd_location);
+    // fs_root = initialise_initrd(initrd_location);
 
     // register handler for IRQ1
-    install_keyboard_driver(); 
+    // install_keyboard_driver(); 
 
     // enables interrupts
 	act_itr();
 
-    // start PIT - number specified equals interrupts per second
-	// init_timer(1);
 
 	monitor_write("Welcome to Josue's Panda OS\n");
-	monitor_write("\n");
+	monitor_write("\n==========================\n");
 
-    print_filesystem_contents();
+    
+    // Create a new process in a new address space which is a clone of this.
+    // monitor_write("forking process\n");
+    // int ret = fork();
 
-	//initialise_tasking(); //Multi tasking
+    // monitor_write("fork() returned ");
+    // monitor_write_hex(ret);
+    // monitor_write(", and getpid() returned ");
+    // monitor_write_hex(getpid());
+    // monitor_write("\n============================================================================\n");
+
+    // monitor_write("switching process\n");
+    // switch_task();
+
+    // print_filesystem_contents();
 
     return 0;
 }
@@ -73,6 +89,10 @@ uint32 create_filesystem(struct multiboot *mboot_ptr) {
 // TEST HELPERS
 
 void print_filesystem_contents() {
+    // not reentrant so make sure we are not interrupted
+
+    deact_itr();
+
     if (!fs_root) {
         monitor_write("\nNo filesystem found\n");
     }
@@ -99,6 +119,8 @@ void print_filesystem_contents() {
         i++;
     }
     monitor_write("\n");
+
+    act_itr();
 }
 
 void force_page_fault() {

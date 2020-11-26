@@ -32,8 +32,8 @@ typedef struct page_directory {
     page_table_t *tables[1024];
     // physical addresses of page tables, useful for loading into CR3 register
     uint32 tables_physical[1024];
-    // address of physical address table
-    uint32 physicalAddr;
+    // useful once paging is enabled and the directory may be in a different location in virtual memory
+    uint32 physical_address_of_tables_physical;
 } page_directory_t;
 
 /**
