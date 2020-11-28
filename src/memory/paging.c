@@ -130,9 +130,9 @@ void initialise_paging() {
     // we are ready to create the kernel heap
     kheap = create_heap(KHEAP_START, KHEAP_START+KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
 
-    current_directory = clone_directory(kernel_directory);  
+    // current_directory = clone_directory(kernel_directory);  
     
-    switch_page_directory(current_directory); 
+    // switch_page_directory(current_directory); 
 }
 
 void switch_page_directory(page_directory_t *dir) {
@@ -168,19 +168,19 @@ page_t *get_page(uint32 address, int make, page_directory_t *dir) {
 }
 
 
-void page_fault(registers_t regs) {
+void page_fault(registers_t *regs) {
    
     uint32 faulting_address;
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
     
-    int present = !(regs.err_code & 0x1);
-    int rw = regs.err_code & 0x2;          
-    int us = regs.err_code & 0x4;          
-    int reserved = regs.err_code & 0x8;    
-    int id = regs.err_code & 0x10;         
+    int present = !(regs->err_code & 0x1);
+    int rw = regs->err_code & 0x2;          
+    int us = regs->err_code & 0x4;          
+    int reserved = regs->err_code & 0x8;    
+    int id = regs->err_code & 0x10;         
 
     monitor_write_sys("Page fault! ( ");
-    monitor_write_hex(regs.err_code);
+    monitor_write_hex(regs->err_code);
     if (present) {monitor_write_sys(" not present ");}
     if (rw) {monitor_write_sys("read-only ");}
     if (us) {monitor_write_sys("user-mode ");}
@@ -188,7 +188,7 @@ void page_fault(registers_t regs) {
     monitor_write_sys(") at ");
     monitor_write_hex(faulting_address);
     monitor_write_sys(" - EIP: ");
-    monitor_write_hex(regs.eip);
+    monitor_write_hex(regs->eip);
     monitor_write_sys("\n");
     PANIC("Page fault");
 }

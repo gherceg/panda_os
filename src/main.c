@@ -32,7 +32,7 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 	// init_timer(1);
 
     // reserve beginning of memory for filesystem befor enabling paging
-    // uint32 initrd_location = create_filesystem(mboot_ptr);
+    uint32 initrd_location = create_filesystem(mboot_ptr);
 
     // comment out initialise_paging if testing heap
     // test_heap();
@@ -42,10 +42,10 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
     // initialise_tasking();
 
     // create kernel in-memory filesystem
-    // fs_root = initialise_initrd(initrd_location);
+    fs_root = initialise_initrd(initrd_location);
 
     // register handler for IRQ1
-    // install_keyboard_driver(); 
+    install_keyboard_driver(); 
 
     // enables interrupts
 	act_itr();
@@ -68,7 +68,7 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
     // monitor_write("switching process\n");
     // switch_task();
 
-    // print_filesystem_contents();
+    print_filesystem_contents();
 
     return 0;
 }
@@ -87,6 +87,11 @@ uint32 create_filesystem(struct multiboot *mboot_ptr) {
 
 
 // TEST HELPERS
+
+void run_tests() {
+    test_heap();
+    force_page_fault();
+}
 
 void print_filesystem_contents() {
     // not reentrant so make sure we are not interrupted
@@ -129,8 +134,14 @@ void force_page_fault() {
 }
 
 void test_heap() {
+    // EXPECTATION: b == d because b is allocated on the heap, then freed
+    // d is then allocated after b is freed, so it should reclaim that same memory
+
+   // paging is not yet enabled, so this will be placed at the current placement_address 
     uint32 a = kmalloc(8);
     initialise_paging();
+
+    // paging is enabled, so allocated on the heap
     uint32 b = kmalloc(8);
     uint32 c = kmalloc(8);
     monitor_write("a: ");
@@ -142,7 +153,9 @@ void test_heap() {
 
     kfree((void *)c);
     kfree((void *)b);
+    // now allocate d and expect it to be at the same location as b
     uint32 d = kmalloc(12);
     monitor_write(", d: ");
     monitor_write_hex(d);
+    monitor_write("\n");
 }
