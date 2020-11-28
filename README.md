@@ -16,26 +16,26 @@ We've added a checklist of the known bugs here to better track which ones have b
 - [ ] Use standard C datatypes by including stdint.h (which comes with freestanding mode)
 - [ ] Inspect inline assembly (compare to examples [here](https://wiki.osdev.org/Inline_Assembly/Examples))
 - [ ] Add memmove and memcmp to mem.c for compiler to use
-- [ ] Do not pass instance of struct `registers` by value to `isr_handler` in `interrupt.s`, pass by reference
+- [x] Do not pass instance of struct `registers` by value to `isr_handler` in `interrupt.s`, pass by reference
 - [ ] ISR 17 and 21 push fake error codes even though the CPU handles
 - [ ] `struct registers` has a useless member `esp`
 - [ ] overuse of `__attribute__((packed))`
-- [ ] cli and sti in interrupt handlers in `interrupt.s`. Specify in IDT entry if interrupts should be on or off.
-- [ ] kmalloc isn't properly aligned ( only aligns for page and 1 byte values, but should take into account all sizes
+- [x] cli and sti in interrupt handlers in `interrupt.s`. Specify in IDT entry if interrupts should be on or off.
+- [ ] kmalloc isn't properly aligned ( only aligns for page and 1 byte values, but should take into account all sizes )
 - [ ] use `size_t` instead of `uint32`
-- [ ] fix check for page aligned
+- [x] fix check for page aligned
 - [ ] refactor paging code
-- [ ] do not reenable paging in `switch_page_directory`, instead rely on special function to do so on the first time
+- [x] do not reenable paging in `switch_page_directory`, instead rely on special function to do so on the first time
 - [ ] assembly used in section 6.4.5 doesn't need to be volatile
 - [ ] refactor heap code
-- [ ] fix bug in `find_smallest_hole`
+- [x] fix bug in `find_smallest_hole`
 - [ ] store filename in directory entries rather than the inode itself (`struct fs_node`)
 - [ ] use copy of multiboot.h from GRUB source code rather than the tutorial
 - [ ] refactor multitasking code
 - [ ] inline assembly optimmiser with gcc
 - [ ] nasm byte keyword causes 0x80 to becomme 0xffffff80
 - [ ] allow interrupts in user mode in idt_set_gate
-- [ ] regs var must be called by reference instead of value in irq and isr handlers
+- [x] regs var must be called by reference instead of value in irq and isr handlers
 - [ ] missing documentation around set_kernel_stack
 
 
