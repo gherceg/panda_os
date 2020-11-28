@@ -37,16 +37,16 @@ void remove_fs(fs_node_t *node) {
         return node->remove(node);
 }
 
-void *mkdir(fs_node_t *node, char *name) {
+void mkdir(fs_node_t *node, char *name) {
     if ((node->flags&0x7) == FS_DIRECTORY && node->mkdir != 0)
-        return node->mkdir(node, index);
+        return node->mkdir(node, name);
     else
         return 0;
 }
 
-void *rmdir(char *name) {
+void rmdir(char *name) {
     if ((node->flags&0x7) == FS_DIRECTORY && node->rmdir != 0)
-        return node->rmdir(node, index);
+        return node->rmdir(name);
     else
         return 0;
 }

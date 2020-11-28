@@ -62,7 +62,7 @@ void open_fs(fs_node_t *node, uint8 read, uint8 write);
 void close_fs(fs_node_t *node);
 void remove_fs(fs_node_t *node);
 void mkdir_fs(fs_node_t *node, char *name);
-void rmdir_fs(fs_node_t *node, char *name);
+void rmdir_fs(char *name);
 struct dirent *readdir_fs(fs_node_t *node, uint32 index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 
