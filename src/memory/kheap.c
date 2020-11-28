@@ -25,7 +25,7 @@ uint32 kmalloc_int(uint32 sz, int align, uint32 *phys) {
         if (align == 1 && (placement_address & 0x00000FFF) != 0) {
             // align the address if not already
             placement_address &= 0xFFFFF000;
-            placement_address += 0x1000;
+            placement_address += PAGE_SIZE;
         }
         if (phys) {
             *phys = placement_address;
@@ -61,7 +61,7 @@ static void expand(uint32 new_size, heap_t *heap) {
 
     if ((new_size&0xFFFFF000) != 0) {
         new_size &= 0xFFFFF000;
-        new_size += 0x1000;
+        new_size += PAGE_SIZE;
     }
 
     ASSERT(heap->start_address+new_size <= heap->max_address);
@@ -71,7 +71,7 @@ static void expand(uint32 new_size, heap_t *heap) {
     uint32 i = old_size;
     while (i < new_size) {
         alloc_frame(get_page(heap->start_address+i, 1, kernel_directory), (heap->supervisor)?1:0, (heap->readonly)?0:1);
-        i += 0x1000 /* page size */;
+        i += PAGE_SIZE;
     }
 
     heap->end_address = heap->start_address+new_size;
@@ -80,19 +80,19 @@ static void expand(uint32 new_size, heap_t *heap) {
 static uint32 contract(uint32 new_size, heap_t *heap) {
     ASSERT(new_size < heap->end_address-heap->start_address);
 
-    if (new_size&0x1000) {
-        new_size &= 0x1000;
-        new_size += 0x1000;
+    if (new_size&PAGE_SIZE) {
+        new_size &= PAGE_SIZE;
+        new_size += PAGE_SIZE;
     }
 
     if (new_size < HEAP_MIN_SIZE)
         new_size = HEAP_MIN_SIZE;
 
     uint32 old_size = heap->end_address-heap->start_address;
-    uint32 i = old_size - 0x1000;
+    uint32 i = old_size - PAGE_SIZE;
     while (new_size < i) {
         free_frame(get_page(heap->start_address+i, 0, kernel_directory));
-        i -= 0x1000;
+        i -= PAGE_SIZE;
     }
 
     heap->end_address = heap->start_address + new_size;
@@ -111,7 +111,7 @@ static int32 find_smallest_hole(uint32 size, uint8 page_align, heap_t *heap) {
             // check if the start of usable memory is page aligned (exclude the header)
             if ( (location + sizeof(header_t) & 0x00000FFF) != 0)
                 // page size - (empty space needed to properly page align)
-                offset = 0x1000 - ((location + sizeof(header_t)) % 0x1000);
+                offset = PAGE_SIZE - ((location + sizeof(header_t)) % PAGE_SIZE);
             
             int32 hole_size = (int32)header->size - offset;
 
@@ -136,8 +136,8 @@ heap_t *create_heap(uint32 start, uint32 end_addr, uint32 max, uint8 supervisor,
     heap_t *heap = (heap_t*)kmalloc(sizeof(heap_t));
 
     // assumptions are based on the heap start and end address being page aligned, so make sure they are
-    ASSERT(start%0x1000 == 0);
-    ASSERT(end_addr%0x1000 == 0);
+    ASSERT(start%PAGE_SIZE == 0);
+    ASSERT(end_addr%PAGE_SIZE == 0);
     
     // create heap index
     heap->index = place_ordered_array( (void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
@@ -148,7 +148,7 @@ heap_t *create_heap(uint32 start, uint32 end_addr, uint32 max, uint8 supervisor,
     // ensure it is page aligned
     if ((start & 0x00000FFF) != 0) {
         start &= 0xFFFFF000;
-        start += 0x1000;
+        start += PAGE_SIZE;
     }
 
     heap->start_address = start;
@@ -236,6 +236,8 @@ void *alloc(uint32 size, uint8 page_align, heap_t *heap) {
 
         // create a hole at the old location and update its values (mainly size)
         header_t *hole_header = (header_t *)orig_hole_pos;
+        // this is the code from the tutorial, but I think it is simpler than this
+        // we want the new size of the hole, so it should just be the new location of the block we allocated - the original address we were going to fill
         // hole_header->size     = PAGE_SIZE - (orig_hole_pos&0xFFFFF000) - sizeof(header_t);
         hole_header->size = new_location - orig_hole_pos;
         hole_header->magic    = HEAP_MAGIC;
