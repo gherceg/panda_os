@@ -23,10 +23,10 @@ static uint32 initrd_read(fs_node_t *node, uint32 offset, uint32 size, uint8 *bu
 }
 
 /*
-static void *initrd_mkdir(fs_node_t *node, char *name) {
+static void initrd_mkdir(fs_node_t *node, char *name) {
 }
 
-static void *initrd_rmdir(char *name) {
+static void initrd_rmdir(char *name) {
 }
 */
 

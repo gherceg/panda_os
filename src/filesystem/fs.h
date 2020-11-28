@@ -37,9 +37,9 @@ typedef struct fs_node {
     write_type_t write;
     open_type_t open;
     close_type_t close;
-    remove_type_t remove;
-    mkdir_type_t mkdir;
-    rmdir_type_t rmdir;
+    remove_type_t remove;   // Removes file in a directory
+    mkdir_type_t mkdir;     // Creates a new directory
+    rmdir_type_t rmdir;     // Removes a directory
     readdir_type_t readdir; // Returns the n'th child of a directory.
     finddir_type_t finddir; // Try to find a child in a directory by name.
     struct fs_node *ptr; // Used by mountpoints and symlinks
