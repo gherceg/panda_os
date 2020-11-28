@@ -27,7 +27,7 @@ typedef struct registers {
     uint32 eip, cs, eflags, useresp, ss; 
 } registers_t;
 
-typedef void (*isr_t)(registers_t);
+typedef void (*isr_t)(registers_t *);
 void register_interrupt_handler(uint8 n, isr_t handler);
 
 #endif

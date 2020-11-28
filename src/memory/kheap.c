@@ -22,7 +22,7 @@ uint32 kmalloc_int(uint32 sz, int align, uint32 *phys) {
         }
         return (uint32)addr;
     } else {
-        if (align == 1 && (placement_address & 0xFFFFF000)) {
+        if (align == 1 && (placement_address & 0x00000FFF) != 0) {
             // align the address if not already
             placement_address &= 0xFFFFF000;
             placement_address += 0x1000;
@@ -59,7 +59,7 @@ uint32 kmalloc(uint32 sz) {
 static void expand(uint32 new_size, heap_t *heap) {
     ASSERT(new_size > heap->end_address - heap->start_address);
 
-    if (new_size&0xFFFFF000 != 0) {
+    if ((new_size&0xFFFFF000) != 0) {
         new_size &= 0xFFFFF000;
         new_size += 0x1000;
     }
@@ -109,7 +109,7 @@ static int32 find_smallest_hole(uint32 size, uint8 page_align, heap_t *heap) {
             uint32 location = (uint32)header;
             int32 offset = 0;
             // check if the start of usable memory is page aligned (exclude the header)
-            if ( (location + sizeof(header_t)) & 0xFFFFF000 != 0)
+            if ( (location + sizeof(header_t) & 0x00000FFF) != 0)
                 // page size - (empty space needed to properly page align)
                 offset = 0x1000 - ((location + sizeof(header_t)) % 0x1000);
             
@@ -146,7 +146,7 @@ heap_t *create_heap(uint32 start, uint32 end_addr, uint32 max, uint8 supervisor,
     start += sizeof(type_t)*HEAP_INDEX_SIZE;
 
     // ensure it is page aligned
-    if (start & 0xFFFFF000 != 0) {
+    if ((start & 0x00000FFF) != 0) {
         start &= 0xFFFFF000;
         start += 0x1000;
     }
@@ -230,13 +230,14 @@ void *alloc(uint32 size, uint8 page_align, heap_t *heap) {
     }
 
     // if page align is needed, do so now and make a hole in front of the block
-    if (page_align && orig_hole_pos&0xFFFFF000) {
+    if (page_align && orig_hole_pos&0x00000FFF) {
         // go to the next page boundary, then subtract the size of the header to determine new location
-        uint32 new_location   = orig_hole_pos + PAGE_SIZE - (orig_hole_pos&0xFFF) - sizeof(header_t);
+        uint32 new_location = orig_hole_pos&0xFFFFF000 + PAGE_SIZE - sizeof(header_t);
 
         // create a hole at the old location and update its values (mainly size)
         header_t *hole_header = (header_t *)orig_hole_pos;
-        hole_header->size     = PAGE_SIZE - (orig_hole_pos&0xFFF) - sizeof(header_t);
+        // hole_header->size     = PAGE_SIZE - (orig_hole_pos&0xFFFFF000) - sizeof(header_t);
+        hole_header->size = new_location - orig_hole_pos;
         hole_header->magic    = HEAP_MAGIC;
         hole_header->is_hole  = 1;
         footer_t *hole_footer = (footer_t *) ( (uint32)new_location - sizeof(footer_t) );
