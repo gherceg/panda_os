@@ -2,7 +2,6 @@
 bochslog.txt
 *.iso
 **.o
-**.img
 src/kernel
 iso/boot/kernel
 create_initrd
