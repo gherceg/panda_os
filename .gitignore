@@ -4,3 +4,4 @@ bochslog.txt
 **.o
 **.img
 src/kernel
+iso/boot/kernel
