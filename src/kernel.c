@@ -22,7 +22,7 @@ void test_heap();
 void print_filesystem_contents();
 
 
-int main(struct multiboot *mboot_ptr, size_t initial_stack) {
+int kernel_main(struct multiboot *mboot_ptr, size_t initial_stack) {
 
 	// setup
 	initial_esp = initial_stack;

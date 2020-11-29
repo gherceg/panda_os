@@ -12,7 +12,7 @@ We've added a checklist of the known bugs here to better track which ones have b
 
 - [ ] Add a proper cross-compiler
 - [ ] Do not rely on GRUB stack, setup our own
-- [ ] Rename main
+- [x] Rename main
 - [ ] Use standard C datatypes by including stdint.h (which comes with freestanding mode)
 - [ ] Inspect inline assembly (compare to examples [here](https://wiki.osdev.org/Inline_Assembly/Examples))
 - [ ] Add memmove and memcmp to mem.c for compiler to use

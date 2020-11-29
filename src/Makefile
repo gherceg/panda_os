@@ -4,7 +4,7 @@
 # The only one that needs changing is the assembler
 # rule, as we use nasm instead of GNU as.
 
-SOURCES=boot.o main.o \
+SOURCES=boot.o kernel.o \
 descriptor_tables/descriptor_tables.o descriptor_tables/gdt.o descriptor_tables/idt.o \
 drivers/keyboard/keyboard.o drivers/keyboard/keyboard_mapping.o drivers/timer/timer.o \
 filesystem/fs.o filesystem/initrd.o \
