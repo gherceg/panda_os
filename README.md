@@ -57,23 +57,31 @@ Install NASM:\
 Install genisoimage:\
 `sudo apt install genisoimage`
 
-Compile any changed files:\
-`gcc -m32 -c <file.c>`
-
-Run build script:\
-`source ./build_panda.sh`
-
 #### Windows
+
+It is recommended to use WSL, and these instructions are intended for that use case.
+
+The instructions for Linux above apply here as well
+
+Download QEMU:
+
+https://www.qemu.org/download/#windows
 
 From C:\Program Files\Qemu:\
 I happen to be using Ubuntu-20.04 for my WSL, but be sure to adjust this path as needed.\
 `qemu-system-x86_64.exe -cdrom \\wsl$\Ubuntu-20.04\home\<user>\path\to\panda_os\panda.iso`
 
 A 100% Windows development workflow has not been added yet. The easiest path forward 
-is to use the Windows Subsystem for Linux for OS development, and then run bochs from the Windows side. 
+is to use the Windows Subsystem for Linux for OS development, and then run your emulator on the Windows side. 
+This is because the WSL is not a complete linux distro out of the box, so you will run into issues trying to use bochs or qemu directly on the WSL.
 
-The WSL is not a complete linux distro out of the box, so beware of attempting to follow the Linux 
-instructions above on WSL only. You might run into issues.
+## Workflow
+
+After making any change, all you need to do is run the shell script `build_panda.sh`.
+
+`source ./build_panda.sh`
+
+We recommend adding an alias to your shell config to make it super easy to run.
 
 ## Under the Hood
 If you are taking CIS 573 or a similar course focused on Operating Systems, you will most likely have focused on the kernel. This includes responsibilities suchas memory management, process management, filesystems and I/O. However, the kernel is not the first piece of software to run when a computer is booted. 
