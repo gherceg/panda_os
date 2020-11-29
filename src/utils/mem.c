@@ -10,5 +10,37 @@ void memcpy(uint8 *dest, const uint8 *src, uint32 len) {
 
 void memset(uint8 *dest, uint8 val, uint32 len) {
     uint8 *temp = (uint8 *)dest;
-    for ( ; len != 0; len--) *temp++ = val;
+    for (; len != 0; len--) *temp++ = val;
+}
+
+void memmove(uint8 *dest, const uint8 *src, uint32 len) {
+	uint8 *ret = (uint8 *)dest;
+	if(dest <= src || (uint8 *)dest >= ((uint8 *)src + len)) {
+		for(; len != 0; len--) {
+			*(uint8 *)dest = *(uint8 *)src;
+			dest = (uint8 *)dest + 1;
+			src = (uint8 *)src + 1;
+		}
+	} else {
+		dest = (uint8 *)dest + len - 1;
+		src = (uint8 *)src + len - 1;
+		for(; len != 0; len--) {
+			*(uint8 *)dest = *(uint8 *)src;
+			dest = (uint8 *)dest - 1;
+			src = (uint8 *)src - 1;
+		}
+	}
+}
+
+int memcmp(uint8 *dest, uint8 *src, uint32 len) {
+	if(!len) {
+		return 0;
+	}
+
+	while(--n && *(uint8 *)dest == *(uint8 *)src) {
+		dest = (uint8 *)dest + 1;
+		src = (uint8 *)src + 1;
+	}
+
+	return *((unsigned uint8 *)dest) - *((unsigned uint8 *)src);
 }
