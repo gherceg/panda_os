@@ -38,10 +38,10 @@ int memcmp(uint8 *dest, uint8 *src, size_t len) {
 		return 0;
 	}
 
-	while(--n && *(uint8 *)dest == *(uint8 *)src) {
+	while(--len && *(uint8 *)dest == *(uint8 *)src) {
 		dest = (uint8 *)dest + 1;
 		src = (uint8 *)src + 1;
 	}
 
-	return *((unsigned uint8 *)dest) - *((unsigned uint8 *)src);
+	return *((uint8 *)dest) - *((uint8 *)src);
 }
