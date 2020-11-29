@@ -1,1 +1,7 @@
 .idea/*
+bochslog.txt
+*.iso
+**.o
+src/kernel
+iso/boot/kernel
+create_initrd
