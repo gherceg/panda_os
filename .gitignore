@@ -5,3 +5,4 @@ bochslog.txt
 **.img
 src/kernel
 iso/boot/kernel
+create_initrd
