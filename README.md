@@ -99,3 +99,7 @@ Panda OS uses the GRUB bootloader to allow for more focus on implementing the ke
 
 ## Contributing
 
+## Resources
+
+https://github.com/jmolloy/JMTK
+
