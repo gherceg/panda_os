@@ -1,5 +1,5 @@
 #include "monitor.h"
-#include <stddef.h>
+#include "../tools.h"
 
 /** This controls the framebuffer provided by the Grub bootloader. It's smallest unit is not pixels, just characters.
  * It is 80 characters wide and 25 characters tall. This is sufficient for debugging and demonstrations of OS components,

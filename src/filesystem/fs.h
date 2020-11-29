@@ -3,7 +3,6 @@
 #define FS_H
 
 #include "../tools.h"
-#include <stddef.h>
 
 #define FS_FILE        0x01
 #define FS_DIRECTORY   0x02

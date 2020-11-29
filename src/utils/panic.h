@@ -2,7 +2,7 @@
 #define PANIC_H
 
 #include "dttp.h"
-#include <stddef.h>
+#include "stddef.h"
 
 #define PANIC(msg) panic(msg, __FILE__, __LINE__);
 #define ASSERT(b) ((b) ? (void)0 : panic_assert(__FILE__, __LINE__, #b))

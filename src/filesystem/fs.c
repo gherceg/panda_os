@@ -1,6 +1,6 @@
 
 #include "fs.h"
-#include <stddef.h>
+#include "../tools.h"
 
 fs_node_t *fs_root = 0;
 

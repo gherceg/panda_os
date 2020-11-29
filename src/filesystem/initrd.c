@@ -1,6 +1,6 @@
 
 #include "initrd.h"
-#include <stddef.h>
+#include "../tools.h"
 
 initrd_header_t *initrd_header;    
 initrd_file_header_t *file_headers;

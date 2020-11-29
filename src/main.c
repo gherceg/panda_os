@@ -8,7 +8,7 @@
 #include "multiboot.h"
 #include "screen/monitor.h"
 #include "utils/asm.h"
-#include <stddef.h>
+#include "tools.h"
 
 extern size_t placement_address; //fs start
 size_t initial_esp;

@@ -2,7 +2,6 @@
 #define MONITOR_H
 
 #include "../tools.h"
-#include <stddef.h>
 
 void monitor_put(char c);
 
