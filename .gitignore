@@ -1,1 +1,6 @@
 .idea/*
+bochslog.txt
+*.iso
+**.o
+**.img
+src/kernel
