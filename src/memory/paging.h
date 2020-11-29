@@ -14,13 +14,13 @@
  */
 
 typedef struct page {
-    uint32 present    : 1; // page present in memory
-    uint32 rw         : 1; // read-only if clear, read-write if set
-    uint32 user       : 1; // kernel mode if clear
-    uint32 accessed   : 1; // accessed since last refresh
-    uint32 dirty      : 1; // written to since last refresh
-    uint32 unused     : 7; // unused/reserved bits
-    uint32 frame      : 20; // frame address (shifted right 12 bits)
+    size_t present    : 1; // page present in memory
+    size_t rw         : 1; // read-only if clear, read-write if set
+    size_t user       : 1; // kernel mode if clear
+    size_t accessed   : 1; // accessed since last refresh
+    size_t dirty      : 1; // written to since last refresh
+    size_t unused     : 7; // unused/reserved bits
+    size_t frame      : 20; // frame address (shifted right 12 bits)
 } page_t;
 
 typedef struct page_table {
@@ -31,9 +31,9 @@ typedef struct page_directory {
 
     page_table_t *tables[1024];
     // physical addresses of page tables, useful for loading into CR3 register
-    uint32 tables_physical[1024];
+    size_t tables_physical[1024];
     // useful once paging is enabled and the directory may be in a different location in virtual memory
-    uint32 physical_address_of_tables_physical;
+    size_t physical_address_of_tables_physical;
 } page_directory_t;
 
 /**
@@ -50,7 +50,7 @@ void switch_page_directory(page_directory_t *new);
  * Retrieve page for address
  * If make == 1, create page if it does not already exist
  */
-page_t *get_page(uint32 address, int make, page_directory_t *dir);
+page_t *get_page(size_t address, int make, page_directory_t *dir);
 
 /**
  * Handler for page faults

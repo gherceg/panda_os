@@ -12,12 +12,12 @@ volatile task_t *ready_queue;
 // needed to access members of paging.c
 extern page_directory_t *kernel_directory;
 extern page_directory_t *current_directory;
-extern uint32 initial_esp;
+extern size_t initial_esp;
 extern void alloc_frame(page_t*, int, int);
-extern uint32 read_eip();
+extern size_t read_eip();
 
 // ensures unique pid
-uint32 next_pid = 1;
+size_t next_pid = 1;
 
 /**
  * Kicks off the first process
@@ -43,40 +43,40 @@ void initialise_tasking() {
  * @param new_stack_start: desired address to move stack to
  * @param size: size of the stack being moved
  */ 
-void move_stack(void *new_stack_start, uint32 size) {
+void move_stack(void *new_stack_start, size_t size) {
 
-  uint32 i;
-  for(i = (uint32)new_stack_start; i >= ((uint32)new_stack_start-size); i -= 0x1000) {
+  size_t i;
+  for(i = (size_t)new_stack_start; i >= ((size_t)new_stack_start-size); i -= 0x1000) {
     // create frames for stack, user mode is sufficient here
     alloc_frame(get_page(i, 1, current_directory), 0 /* User mode */, 1 /* Is writable */ );
   }
   
   // flush the TLB by writing by reading and writing the page directory address
   // to partially flush, we could use the invlpg instruction but this is simpler
-  uint32 pd_addr;
+  size_t pd_addr;
   asm volatile("mov %%cr3, %0" : "=r" (pd_addr));
   asm volatile("mov %0, %%cr3" : : "r" (pd_addr));
 
   // get current stack and base pointers to determine offset to apply to new stack
-  uint32 old_stack_pointer; asm volatile("mov %%esp, %0" : "=r" (old_stack_pointer));
-  uint32 old_base_pointer;  asm volatile("mov %%ebp, %0" : "=r" (old_base_pointer));
+  size_t old_stack_pointer; asm volatile("mov %%esp, %0" : "=r" (old_stack_pointer));
+  size_t old_base_pointer;  asm volatile("mov %%ebp, %0" : "=r" (old_base_pointer));
 
-  uint32 offset = (uint32)new_stack_start - initial_esp;
+  size_t offset = (size_t)new_stack_start - initial_esp;
 
-  uint32 new_stack_pointer = old_stack_pointer + offset;
-  uint32 new_base_pointer = old_base_pointer  + offset;
+  size_t new_stack_pointer = old_stack_pointer + offset;
+  size_t new_base_pointer = old_base_pointer  + offset;
 
   memcpy((void*)new_stack_pointer, (void*)old_stack_pointer, initial_esp-old_stack_pointer);
 
   // naive algorithm for updating any base pointers to apply the offset to
   // assumes any value that falls within the old stacks address space is a base pointer, which isn't necessarily true
   // TODO: improve this so that only base pointers modified, not data we want to keep
-  for(i = (uint32)new_stack_start; i > (uint32)new_stack_start-size; i -= 4) {
-    uint32 tmp = * (uint32*)i;
+  for(i = (size_t)new_stack_start; i > (size_t)new_stack_start-size; i -= 4) {
+    size_t tmp = * (size_t*)i;
 
     if ( (old_stack_pointer < tmp) && (tmp < initial_esp) ) {
       tmp = tmp + offset;
-      uint32 *tmp2 = (uint32*)i;
+      size_t *tmp2 = (size_t*)i;
       *tmp2 = tmp;
     }
   }
@@ -99,7 +99,7 @@ void switch_task() {
     return;
   }
 
-  uint32 esp, ebp, eip;
+  size_t esp, ebp, eip;
   asm volatile("mov %%esp, %0" : "=r"(esp));
   asm volatile("mov %%ebp, %0" : "=r"(ebp));
 
@@ -179,14 +179,14 @@ int fork() {
 
   // defined in process.s, quickly 
   // need to tell the task where to start executing which can be found via the current instruction
-  uint32 eip = read_eip();
+  size_t eip = read_eip();
 
   // at this point we could be either the parent or child task and need to check
   if (current_task == parent_task) {
 
     // only setup esp, ebp, and eip for child if we are the parent
-    uint32 esp; asm volatile("mov %%esp, %0" : "=r"(esp));
-    uint32 ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
+    size_t esp; asm volatile("mov %%esp, %0" : "=r"(esp));
+    size_t ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
     new_task->esp = esp;
     new_task->ebp = ebp;
     new_task->eip = eip;

@@ -3,7 +3,7 @@
 
 fs_node_t *fs_root = 0;
 
-uint32 read_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
+size_t read_fs(fs_node_t *node, size_t offset, size_t size, uint8 *buffer) {
    
     if (node->read != 0)
         return node->read(node, offset, size, buffer);
@@ -11,7 +11,7 @@ uint32 read_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
         return 0;
 }
 
-uint32 write_fs(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
+size_t write_fs(fs_node_t *node, size_t offset, size_t size, uint8 *buffer) {
    
     if (node->write != 0)
         return node->write(node, offset, size, buffer);
@@ -31,7 +31,7 @@ void close_fs(fs_node_t *node) {
         return node->close(node);
 }
 
-struct dirent *readdir_fs(fs_node_t *node, uint32 index) {
+struct dirent *readdir_fs(fs_node_t *node, size_t index) {
    
     if ( (node->flags&0x7) == FS_DIRECTORY && node->readdir != 0 )
         return node->readdir(node, index);

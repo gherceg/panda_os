@@ -2,7 +2,7 @@
 #include "dttp.h"
 #include "../screen/monitor.h"
 
-extern void panic(const char *message, const char *file, uint32 line) {
+extern void panic(const char *message, const char *file, size_t line) {
     
     asm volatile("cli"); 
 
@@ -17,7 +17,7 @@ extern void panic(const char *message, const char *file, uint32 line) {
     for(;;);
 }
 
-extern void panic_assert(const char *file, uint32 line, const char *desc) {
+extern void panic_assert(const char *file, size_t line, const char *desc) {
     
     asm volatile("cli"); 
 

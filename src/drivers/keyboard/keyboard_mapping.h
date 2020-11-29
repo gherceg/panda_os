@@ -211,11 +211,11 @@
 /// @brief Defines a set of arrays used to map key to characters.
 typedef struct keymap_t {
 	/// The basic mapping.
-	uint32 base[65536];
+	size_t base[65536];
 	/// The mapping when shifted.
-	uint32 shift[65536];
+	size_t shift[65536];
 	/// The mapping when numlock is active.
-	uint32 numlock[65536];
+	size_t numlock[65536];
 } keymap_t;
 
 extern const keymap_t keymap;

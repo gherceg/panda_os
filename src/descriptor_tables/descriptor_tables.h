@@ -19,7 +19,7 @@ typedef struct gdt_entry_struct gdt_entry_t;
 
 struct gdt_ptr_struct {
     uint16 limit;              
-    uint32 base;               
+    size_t base;               
 } __attribute__((packed));
 
 typedef struct gdt_ptr_struct gdt_ptr_t;
@@ -36,7 +36,7 @@ typedef struct idt_entry_struct idt_entry_t;
 
 struct idt_ptr_struct {
     uint16 limit;
-    uint32 base;               
+    size_t base;               
 } __attribute__((packed));
 
 typedef struct idt_ptr_struct idt_ptr_t;

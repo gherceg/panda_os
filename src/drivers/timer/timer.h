@@ -10,6 +10,6 @@
  * This is also how a system clock is implemented
 */
 
-void init_timer(uint32 frequency);
+void init_timer(size_t frequency);
 
 #endif

@@ -3,13 +3,13 @@
 #include "descriptor_tables.h"
 #include "../interrupts/isr.h"
 
-extern void gdt_flush(uint32);
-extern void idt_flush(uint32);
+extern void gdt_flush(size_t);
+extern void idt_flush(size_t);
 
 static void init_gdt();
 static void init_idt();
-static void gdt_set_gate(int32,uint32,uint32,uint8,uint8);
-static void idt_set_gate(uint8,uint32,uint16,uint8);
+static void gdt_set_gate(int32,size_t,size_t,uint8,uint8);
+static void idt_set_gate(uint8,size_t,uint16,uint8);
 
 /** 5 entries total
  need code and data segments for both user and kernel modes
@@ -39,7 +39,7 @@ void init_descriptor_tables() {
 static void init_gdt() {
     // this special structure is needed to tell the CPU where to find the GDT
     gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
-    gdt_ptr.base  = (uint32)&gdt_entries;
+    gdt_ptr.base  = (size_t)&gdt_entries;
 
     gdt_set_gate(0, 0, 0, 0, 0); // Null segment     
     // Note the only difference below is the 'access' value
@@ -50,13 +50,13 @@ static void init_gdt() {
     gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // Data mode code segment
 
     // defined in gdt.s
-    gdt_flush((uint32)&gdt_ptr);
+    gdt_flush((size_t)&gdt_ptr);
 }
 
 /**
  Set values for one GDT entry
 */
-static void gdt_set_gate(int32 num, uint32 base, uint32 limit, uint8 access, uint8 gran) {
+static void gdt_set_gate(int32 num, size_t base, size_t limit, uint8 access, uint8 gran) {
     gdt_entries[num].base_low    = (base & 0xFFFF);
     gdt_entries[num].base_middle = (base >> 16) & 0xFF;
     gdt_entries[num].base_high   = (base >> 24) & 0xFF;
@@ -76,7 +76,7 @@ static void gdt_set_gate(int32 num, uint32 base, uint32 limit, uint8 access, uin
 */
 static void init_idt() {
     idt_ptr.limit = sizeof(idt_entry_t) * 256 -1;
-    idt_ptr.base  = (uint32)&idt_entries;
+    idt_ptr.base  = (size_t)&idt_entries;
 
     memset(&idt_entries, 0, sizeof(idt_entry_t)*256);
 
@@ -91,60 +91,60 @@ static void init_idt() {
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    idt_set_gate( 0, (uint32)isr0 , 0x08, 0x8E);
-    idt_set_gate( 1, (uint32)isr1 , 0x08, 0x8E);
-    idt_set_gate( 2, (uint32)isr2 , 0x08, 0x8E);
-    idt_set_gate( 3, (uint32)isr3 , 0x08, 0x8E);
-    idt_set_gate( 4, (uint32)isr4 , 0x08, 0x8E);
-    idt_set_gate( 5, (uint32)isr5 , 0x08, 0x8E);
-    idt_set_gate( 6, (uint32)isr6 , 0x08, 0x8E);
-    idt_set_gate( 7, (uint32)isr7 , 0x08, 0x8E);
-    idt_set_gate( 8, (uint32)isr8 , 0x08, 0x8E);
-    idt_set_gate( 9, (uint32)isr9 , 0x08, 0x8E);
-    idt_set_gate(10, (uint32)isr10, 0x08, 0x8E);
-    idt_set_gate(11, (uint32)isr11, 0x08, 0x8E);
-    idt_set_gate(12, (uint32)isr12, 0x08, 0x8E);
-    idt_set_gate(13, (uint32)isr13, 0x08, 0x8E);
-    idt_set_gate(14, (uint32)isr14, 0x08, 0x8E);
-    idt_set_gate(15, (uint32)isr15, 0x08, 0x8E);
-    idt_set_gate(16, (uint32)isr16, 0x08, 0x8E);
-    idt_set_gate(17, (uint32)isr17, 0x08, 0x8E);
-    idt_set_gate(18, (uint32)isr18, 0x08, 0x8E);
-    idt_set_gate(19, (uint32)isr19, 0x08, 0x8E);
-    idt_set_gate(20, (uint32)isr20, 0x08, 0x8E);
-    idt_set_gate(21, (uint32)isr21, 0x08, 0x8E);
-    idt_set_gate(22, (uint32)isr22, 0x08, 0x8E);
-    idt_set_gate(23, (uint32)isr23, 0x08, 0x8E);
-    idt_set_gate(24, (uint32)isr24, 0x08, 0x8E);
-    idt_set_gate(25, (uint32)isr25, 0x08, 0x8E);
-    idt_set_gate(26, (uint32)isr26, 0x08, 0x8E);
-    idt_set_gate(27, (uint32)isr27, 0x08, 0x8E);
-    idt_set_gate(28, (uint32)isr28, 0x08, 0x8E);
-    idt_set_gate(29, (uint32)isr29, 0x08, 0x8E);
-    idt_set_gate(30, (uint32)isr30, 0x08, 0x8E);
-    idt_set_gate(31, (uint32)isr31, 0x08, 0x8E);
-    idt_set_gate(32, (uint32)irq0, 0x08, 0x8E);
-    idt_set_gate(33, (uint32)irq1, 0x08, 0x8E);
-    idt_set_gate(34, (uint32)irq2, 0x08, 0x8E);
-    idt_set_gate(35, (uint32)irq3, 0x08, 0x8E);
-    idt_set_gate(36, (uint32)irq4, 0x08, 0x8E);
-    idt_set_gate(37, (uint32)irq5, 0x08, 0x8E);
-    idt_set_gate(38, (uint32)irq6, 0x08, 0x8E);
-    idt_set_gate(39, (uint32)irq7, 0x08, 0x8E);
-    idt_set_gate(40, (uint32)irq8, 0x08, 0x8E);
-    idt_set_gate(41, (uint32)irq9, 0x08, 0x8E);
-    idt_set_gate(42, (uint32)irq10, 0x08, 0x8E);
-    idt_set_gate(43, (uint32)irq11, 0x08, 0x8E);
-    idt_set_gate(44, (uint32)irq12, 0x08, 0x8E);
-    idt_set_gate(45, (uint32)irq13, 0x08, 0x8E);
-    idt_set_gate(46, (uint32)irq14, 0x08, 0x8E);
-    idt_set_gate(47, (uint32)irq15, 0x08, 0x8E);
+    idt_set_gate( 0, (size_t)isr0 , 0x08, 0x8E);
+    idt_set_gate( 1, (size_t)isr1 , 0x08, 0x8E);
+    idt_set_gate( 2, (size_t)isr2 , 0x08, 0x8E);
+    idt_set_gate( 3, (size_t)isr3 , 0x08, 0x8E);
+    idt_set_gate( 4, (size_t)isr4 , 0x08, 0x8E);
+    idt_set_gate( 5, (size_t)isr5 , 0x08, 0x8E);
+    idt_set_gate( 6, (size_t)isr6 , 0x08, 0x8E);
+    idt_set_gate( 7, (size_t)isr7 , 0x08, 0x8E);
+    idt_set_gate( 8, (size_t)isr8 , 0x08, 0x8E);
+    idt_set_gate( 9, (size_t)isr9 , 0x08, 0x8E);
+    idt_set_gate(10, (size_t)isr10, 0x08, 0x8E);
+    idt_set_gate(11, (size_t)isr11, 0x08, 0x8E);
+    idt_set_gate(12, (size_t)isr12, 0x08, 0x8E);
+    idt_set_gate(13, (size_t)isr13, 0x08, 0x8E);
+    idt_set_gate(14, (size_t)isr14, 0x08, 0x8E);
+    idt_set_gate(15, (size_t)isr15, 0x08, 0x8E);
+    idt_set_gate(16, (size_t)isr16, 0x08, 0x8E);
+    idt_set_gate(17, (size_t)isr17, 0x08, 0x8E);
+    idt_set_gate(18, (size_t)isr18, 0x08, 0x8E);
+    idt_set_gate(19, (size_t)isr19, 0x08, 0x8E);
+    idt_set_gate(20, (size_t)isr20, 0x08, 0x8E);
+    idt_set_gate(21, (size_t)isr21, 0x08, 0x8E);
+    idt_set_gate(22, (size_t)isr22, 0x08, 0x8E);
+    idt_set_gate(23, (size_t)isr23, 0x08, 0x8E);
+    idt_set_gate(24, (size_t)isr24, 0x08, 0x8E);
+    idt_set_gate(25, (size_t)isr25, 0x08, 0x8E);
+    idt_set_gate(26, (size_t)isr26, 0x08, 0x8E);
+    idt_set_gate(27, (size_t)isr27, 0x08, 0x8E);
+    idt_set_gate(28, (size_t)isr28, 0x08, 0x8E);
+    idt_set_gate(29, (size_t)isr29, 0x08, 0x8E);
+    idt_set_gate(30, (size_t)isr30, 0x08, 0x8E);
+    idt_set_gate(31, (size_t)isr31, 0x08, 0x8E);
+    idt_set_gate(32, (size_t)irq0, 0x08, 0x8E);
+    idt_set_gate(33, (size_t)irq1, 0x08, 0x8E);
+    idt_set_gate(34, (size_t)irq2, 0x08, 0x8E);
+    idt_set_gate(35, (size_t)irq3, 0x08, 0x8E);
+    idt_set_gate(36, (size_t)irq4, 0x08, 0x8E);
+    idt_set_gate(37, (size_t)irq5, 0x08, 0x8E);
+    idt_set_gate(38, (size_t)irq6, 0x08, 0x8E);
+    idt_set_gate(39, (size_t)irq7, 0x08, 0x8E);
+    idt_set_gate(40, (size_t)irq8, 0x08, 0x8E);
+    idt_set_gate(41, (size_t)irq9, 0x08, 0x8E);
+    idt_set_gate(42, (size_t)irq10, 0x08, 0x8E);
+    idt_set_gate(43, (size_t)irq11, 0x08, 0x8E);
+    idt_set_gate(44, (size_t)irq12, 0x08, 0x8E);
+    idt_set_gate(45, (size_t)irq13, 0x08, 0x8E);
+    idt_set_gate(46, (size_t)irq14, 0x08, 0x8E);
+    idt_set_gate(47, (size_t)irq15, 0x08, 0x8E);
 
     // defined in gdt.s
-    idt_flush((uint32)&idt_ptr);
+    idt_flush((size_t)&idt_ptr);
 }
 
-static void idt_set_gate(uint8 num, uint32 base, uint16 sel, uint8 flags) {
+static void idt_set_gate(uint8 num, size_t base, uint16 sel, uint8 flags) {
     idt_entries[num].base_lo = base & 0xFFFF;
     idt_entries[num].base_hi = (base >> 16) & 0xFFFF;
 

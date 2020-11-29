@@ -20,44 +20,44 @@
 #define HEAP_MIN_SIZE     0x70000
 
 typedef struct {
-    uint32 magic; // header/footer identifier
+    size_t magic; // header/footer identifier
     uint8 is_hole; // 0 is block, 1 if hole
-    uint32 size; // includes header/footer/actual block
+    size_t size; // includes header/footer/actual block
 } header_t;
 
 typedef struct {
-    uint32 magic; // header/footer identifier
+    size_t magic; // header/footer identifier
     header_t *header; // pointer to the header_t struct
 } footer_t;
 
 typedef struct {
     ordered_array_t index;
-    uint32 start_address;
-    uint32 end_address;
-    uint32 max_address;
+    size_t start_address;
+    size_t end_address;
+    size_t max_address;
     uint8 supervisor;
     uint8 readonly;
 } heap_t;
 
-heap_t *create_heap(uint32 start, uint32 end, uint32 max, uint8 supervisor, uint8 readonly);
+heap_t *create_heap(size_t start, size_t end, size_t max, uint8 supervisor, uint8 readonly);
 
-void *alloc(uint32 size, uint8 page_align, heap_t *heap);
+void *alloc(size_t size, uint8 page_align, heap_t *heap);
 
 void free(void *p, heap_t *heap);
 
-uint32 kmalloc_int(uint32 sz, int align, uint32 *phys);
+size_t kmalloc_int(size_t sz, int align, size_t *phys);
 
 // ensure allocated memory is page aligned
-uint32 kmalloc_a(uint32 sz);
+size_t kmalloc_a(size_t sz);
 
 // returns physical address
-uint32 kmalloc_p(uint32 sz, uint32 *phys);
+size_t kmalloc_p(size_t sz, size_t *phys);
 
 // returns physical address and page aligned
-uint32 kmalloc_ap(uint32 sz, uint32 *phys);
+size_t kmalloc_ap(size_t sz, size_t *phys);
 
 // not page aligned
-uint32 kmalloc(uint32 sz);
+size_t kmalloc(size_t sz);
 
 void kfree(void *p);
 

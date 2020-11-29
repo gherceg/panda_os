@@ -9,11 +9,11 @@
 #include "screen/monitor.h"
 #include "utils/asm.h"
 
-extern uint32 placement_address; //fs start
-uint32 initial_esp;
+extern size_t placement_address; //fs start
+size_t initial_esp;
 
 // helpers defined below
-uint32 create_filesystem(struct multiboot *mboot_ptr);
+size_t create_filesystem(struct multiboot *mboot_ptr);
 
 // test helpers
 void force_page_fault();
@@ -21,7 +21,7 @@ void test_heap();
 void print_filesystem_contents();
 
 
-int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
+int main(struct multiboot *mboot_ptr, size_t initial_stack) {
 
 	// setup
 	initial_esp = initial_stack;
@@ -32,7 +32,7 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
 	// init_timer(1);
 
     // reserve beginning of memory for filesystem befor enabling paging
-    uint32 initrd_location = create_filesystem(mboot_ptr);
+    size_t initrd_location = create_filesystem(mboot_ptr);
 
     // comment out initialise_paging if testing heap
     // test_heap();
@@ -73,13 +73,13 @@ int main(struct multiboot *mboot_ptr, uint32 initial_stack) {
     return 0;
 }
 
-uint32 create_filesystem(struct multiboot *mboot_ptr) {
+size_t create_filesystem(struct multiboot *mboot_ptr) {
 
     // check if initrd is installed
     ASSERT(mboot_ptr->mods_count > 0); 
     // Find the location of our initial ramdisk.
-    uint32 initrd_location = *((uint32*)mboot_ptr->mods_addr);
-    uint32 initrd_end = *(uint32*)(mboot_ptr->mods_addr+4);
+    size_t initrd_location = *((size_t*)mboot_ptr->mods_addr);
+    size_t initrd_end = *(size_t*)(mboot_ptr->mods_addr+4);
     // Don't trample our module with placement accesses, please!
     placement_address = initrd_end;
     return initrd_location;
@@ -114,7 +114,7 @@ void print_filesystem_contents() {
         } else {
             monitor_write_sys("\n\t contents: \"");
             char buf[256];
-            uint32 sz = read_fs(fsnode, 0, 256, buf);
+            size_t sz = read_fs(fsnode, 0, 256, buf);
             int j;
             for (j = 0; j < sz; j++)
                 monitor_put(buf[j]);
@@ -129,8 +129,8 @@ void print_filesystem_contents() {
 }
 
 void force_page_fault() {
-    uint32 *ptr = (uint32*)0xA0000000;
-    uint32 do_page_fault = *ptr;
+    size_t *ptr = (size_t*)0xA0000000;
+    size_t do_page_fault = *ptr;
 }
 
 void test_heap() {
@@ -138,12 +138,12 @@ void test_heap() {
     // d is then allocated after b is freed, so it should reclaim that same memory
 
    // paging is not yet enabled, so this will be placed at the current placement_address 
-    uint32 a = kmalloc(8);
+    size_t a = kmalloc(8);
     initialise_paging();
 
     // paging is enabled, so allocated on the heap
-    uint32 b = kmalloc(8);
-    uint32 c = kmalloc(8);
+    size_t b = kmalloc(8);
+    size_t c = kmalloc(8);
     monitor_write("a: ");
     monitor_write_hex(a);
     monitor_write(", b: ");
@@ -154,7 +154,7 @@ void test_heap() {
     kfree((void *)c);
     kfree((void *)b);
     // now allocate d and expect it to be at the same location as b
-    uint32 d = kmalloc(12);
+    size_t d = kmalloc(12);
     monitor_write(", d: ");
     monitor_write_hex(d);
     monitor_write("\n");

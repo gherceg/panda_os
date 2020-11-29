@@ -3,7 +3,7 @@
 #include "../../screen/monitor.h"
 #include "../../process/task.h"
 
-uint32 tick = 0;
+size_t tick = 0;
 
 static void timer_callback(registers_t regs) {
     tick++;
@@ -13,13 +13,13 @@ static void timer_callback(registers_t regs) {
     // monitor_write("\n");
 }
 
-void init_timer(uint32 frequency) {
+void init_timer(size_t frequency) {
     register_interrupt_handler(IRQ0, &timer_callback);
 
     // The value we send to the PIT is the value to divide it's input clock
     // (1193180 Hz) by, to get our required frequency. Important to note is
     // that the divisor must be small enough to fit into 16-bits.
-    uint32 divisor = 1193180 / frequency;
+    size_t divisor = 1193180 / frequency;
 
     // 0x36 sets clock to repeating mode (refresh after divisor hits 0)
     // it also says we want to set the divisor value

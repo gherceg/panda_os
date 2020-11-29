@@ -10,7 +10,7 @@ int nroot_nodes;
 
 struct dirent dirent;
 
-static uint32 initrd_read(fs_node_t *node, uint32 offset, uint32 size, uint8 *buffer) {
+static size_t initrd_read(fs_node_t *node, size_t offset, size_t size, uint8 *buffer) {
     initrd_file_header_t header = file_headers[node->inode];
     if (offset > header.length)
         return 0;
@@ -22,7 +22,7 @@ static uint32 initrd_read(fs_node_t *node, uint32 offset, uint32 size, uint8 *bu
     return size;
 }
 
-static struct dirent *initrd_readdir(fs_node_t *node, uint32 index) {
+static struct dirent *initrd_readdir(fs_node_t *node, size_t index) {
     if (node == initrd_root && index == 0) {
       strcpy(dirent.name, "dev");
       dirent.name[3] = 0;
@@ -50,7 +50,7 @@ static fs_node_t *initrd_finddir(fs_node_t *node, char *name) {
     return 0;
 }
 
-fs_node_t *initialise_initrd(uint32 location) {
+fs_node_t *initialise_initrd(size_t location) {
    
     initrd_header = (initrd_header_t *)location;
     file_headers = (initrd_file_header_t *) (location+sizeof(initrd_header_t));

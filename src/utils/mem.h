@@ -3,7 +3,7 @@
 
 #include "dttp.h"
 
-void memcpy(uint8 *dest, const uint8 *src, uint32 len);
-void memset(uint8 *dest, uint8 val, uint32 len);
+void memcpy(uint8 *dest, const uint8 *src, size_t len);
+void memset(uint8 *dest, uint8 val, size_t len);
 
 #endif

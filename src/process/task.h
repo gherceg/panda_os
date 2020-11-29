@@ -10,8 +10,8 @@
 
 typedef struct task {
     int id; // self explanatory, but unique identifies the process   
-    uint32 esp, ebp; // stack and base pointers      
-    uint32 eip; // instruction pointer           
+    size_t esp, ebp; // stack and base pointers      
+    size_t eip; // instruction pointer           
     page_directory_t *page_directory; // page directory
     struct task *next; // next task in linked list    
 } task_t;
@@ -26,7 +26,7 @@ void switch_task();
 int fork();
 
 // moves a process' stack the new desired location
-void move_stack(void *new_stack_start, uint32 size);
+void move_stack(void *new_stack_start, size_t size);
 
 // id of the current running process
 int getpid();

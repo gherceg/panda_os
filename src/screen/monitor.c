@@ -143,7 +143,7 @@ void monitor_write_sys(char * c) {
 }
 
 
-void monitor_write_hex(uint32 n) {
+void monitor_write_hex(size_t n) {
     int32 tmp;
 
     monitor_write("0x");
@@ -175,7 +175,7 @@ void monitor_write_hex(uint32 n) {
 
 }
 
-void monitor_write_dec(uint32 n) {
+void monitor_write_dec(size_t n) {
 
     if (n == 0) {
         monitor_put('0');

@@ -8,44 +8,44 @@ page_directory_t *kernel_directory=0;
 page_directory_t *current_directory=0;
 
 // bitset of frames used/free
-uint32 *frames;
-uint32 frame_count;
+size_t *frames;
+size_t frame_count;
 
-extern uint32 placement_address;
+extern size_t placement_address;
 extern heap_t *kheap;
-extern void copy_page_physical(uint32, uint32);
+extern void copy_page_physical(size_t, size_t);
 
 #define INDEX_FROM_BIT(a) (a/(8*4))
 #define OFFSET_FROM_BIT(a) (a%(8*4))
 
-static void set_frame(uint32 frame_addr) {
-    uint32 frame = frame_addr/0x1000;
-    uint32 idx = INDEX_FROM_BIT(frame);
-    uint32 off = OFFSET_FROM_BIT(frame);
+static void set_frame(size_t frame_addr) {
+    size_t frame = frame_addr/0x1000;
+    size_t idx = INDEX_FROM_BIT(frame);
+    size_t off = OFFSET_FROM_BIT(frame);
     frames[idx] |= (0x1 << off);
 }
 
-static void clear_frame(uint32 frame_addr) {
-    uint32 frame = frame_addr/0x1000;
-    uint32 idx = INDEX_FROM_BIT(frame);
-    uint32 off = OFFSET_FROM_BIT(frame);
+static void clear_frame(size_t frame_addr) {
+    size_t frame = frame_addr/0x1000;
+    size_t idx = INDEX_FROM_BIT(frame);
+    size_t off = OFFSET_FROM_BIT(frame);
     frames[idx] &= ~(0x1 << off);
 }
 
-static uint32 test_frame(uint32 frame_addr) {
-    uint32 frame = frame_addr/0x1000;
-    uint32 idx = INDEX_FROM_BIT(frame);
-    uint32 off = OFFSET_FROM_BIT(frame);
+static size_t test_frame(size_t frame_addr) {
+    size_t frame = frame_addr/0x1000;
+    size_t idx = INDEX_FROM_BIT(frame);
+    size_t off = OFFSET_FROM_BIT(frame);
     return (frames[idx] & (0x1 << off));
 }
 
-static uint32 first_frame() {
-    uint32 i, j;
+static size_t first_frame() {
+    size_t i, j;
     for (i = 0; i < INDEX_FROM_BIT(frame_count); i++) {
         if (frames[i] != 0xFFFFFFFF) {
            
             for (j = 0; j < 32; j++) {
-                uint32 toTest = 0x1 << j;
+                size_t toTest = 0x1 << j;
                 if ( !(frames[i]&toTest) ) {
                     return i*4*8+j;
                 }
@@ -60,9 +60,9 @@ void alloc_frame(page_t *page, int is_kernel, int is_writeable) {
         return;
     } else {
         // find available frame, 
-        uint32 frame_address = first_frame();
+        size_t frame_address = first_frame();
 
-        if (frame_address == (uint32)-1) {
+        if (frame_address == (size_t)-1) {
             PANIC("No free frames!");
         }
         
@@ -75,7 +75,7 @@ void alloc_frame(page_t *page, int is_kernel, int is_writeable) {
 }
 
 void free_frame(page_t *page) {
-    uint32 frame;
+    size_t frame;
     if (!(frame=page->frame)) {
         return;
     } else {
@@ -87,16 +87,16 @@ void free_frame(page_t *page) {
 void initialise_paging() {
     // specifies the size of memory
     // assume 16MB for now
-    uint32 mem_end_page = 0x1000000;
+    size_t mem_end_page = 0x1000000;
     
     frame_count = mem_end_page / 0x1000;
-    frames = (uint32*) kmalloc(INDEX_FROM_BIT(frame_count));
+    frames = (size_t*) kmalloc(INDEX_FROM_BIT(frame_count));
     memset(frames, 0, INDEX_FROM_BIT(frame_count));
 
-    uint32 phys;
+    size_t phys;
     kernel_directory = (page_directory_t*)kmalloc_a(sizeof(page_directory_t));
     memset(kernel_directory, 0, sizeof(page_directory_t));
-    kernel_directory->physical_address_of_tables_physical = (uint32)kernel_directory->tables_physical;
+    kernel_directory->physical_address_of_tables_physical = (size_t)kernel_directory->tables_physical;
 
     // map pages for the kernel heap addresses (creates page tables)
     // we cannot change the placement_address between identity mapping and enabling paging
@@ -138,23 +138,23 @@ void initialise_paging() {
 void switch_page_directory(page_directory_t *dir) {
     current_directory = dir;
     asm volatile("mov %0, %%cr3":: "r"(dir->physical_address_of_tables_physical));
-    uint32 cr0;
+    size_t cr0;
     asm volatile("mov %%cr0, %0": "=r"(cr0));
     cr0 |= 0x80000000; // enables paging
     asm volatile("mov %0, %%cr0":: "r"(cr0));
 }
 
-page_t *get_page(uint32 address, int make, page_directory_t *dir) {
+page_t *get_page(size_t address, int make, page_directory_t *dir) {
     // create index from address
-    uint32 page_index = address / 0x1000;
+    size_t page_index = address / 0x1000;
    // find page table that contains this page index
-    uint32 table_index = page_index / 1024;
+    size_t table_index = page_index / 1024;
     if (dir->tables[table_index]) {
         // straightforward, return the page cause we have it
         return &dir->tables[table_index]->pages[page_index%1024];
     } else if (make) {
         // if make is set to 1, create the page table 
-        uint32 tmp;
+        size_t tmp;
         dir->tables[table_index] = (page_table_t*)kmalloc_ap(sizeof(page_table_t), &tmp);
         // zero out the 4KB block
         memset(dir->tables[table_index], 0, 0x1000);
@@ -170,7 +170,7 @@ page_t *get_page(uint32 address, int make, page_directory_t *dir) {
 
 void page_fault(registers_t *regs) {
    
-    uint32 faulting_address;
+    size_t faulting_address;
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
     
     int present = !(regs->err_code & 0x1);
@@ -196,7 +196,7 @@ void page_fault(registers_t *regs) {
 /**
  * Used when cloning a directory. Each table (and their pages/frames) need to cloned.
  */
-static page_table_t *clone_table(page_table_t *src, uint32 *physical_address) {
+static page_table_t *clone_table(page_table_t *src, size_t *physical_address) {
     // create a new blank page table
     page_table_t *table = (page_table_t*) kmalloc_ap(sizeof(page_table_t), physical_address);
     memset(table, 0, sizeof(page_directory_t));
@@ -226,7 +226,7 @@ static page_table_t *clone_table(page_table_t *src, uint32 *physical_address) {
  * Other page tables need only be copied, which clone_table() is for
  */
 page_directory_t *clone_directory(page_directory_t *src) {
-    uint32 physical_address;
+    size_t physical_address;
     
     // create a new blank page directory
     page_directory_t *dir = (page_directory_t*) kmalloc_ap(sizeof(page_directory_t), &physical_address);
@@ -234,7 +234,7 @@ page_directory_t *clone_directory(page_directory_t *src) {
 
     // now that a new page directory has been created, we need to set the physical address of the tables_physical member
     // this is needed to properly load the CR3 register
-    uint32 offset = (uint32)dir->tables_physical - (uint32)dir;
+    size_t offset = (size_t)dir->tables_physical - (size_t)dir;
     dir->physical_address_of_tables_physical = physical_address + offset;
 
     // copy/link depending on the page table

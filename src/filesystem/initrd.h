@@ -11,16 +11,16 @@
  */
 
 typedef struct {
-	uint32 nfiles;
+	size_t nfiles;
 } initrd_header_t;
 
 typedef struct {
     uint8 magic;
     int8 name[64];
-    uint32 offset;  
-    uint32 length;
+    size_t offset;  
+    size_t length;
 } initrd_file_header_t;
 
-fs_node_t *initialise_initrd(uint32 location);
+fs_node_t *initialise_initrd(size_t location);
 
 #endif
