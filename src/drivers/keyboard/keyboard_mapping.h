@@ -1,4 +1,5 @@
 #include "../../tools.h"
+#include <stddef.h>
 
 // escape
 #define KEY_ESCAPE 0x01

@@ -1,6 +1,7 @@
 
 #include "dttp.h"
 #include "../screen/monitor.h"
+#include <stddef.h>
 
 extern void panic(const char *message, const char *file, size_t line) {
     

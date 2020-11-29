@@ -3,6 +3,7 @@
 #define ORDERED_ARRAY_H
 
 #include "../tools.h"
+#include <stddef.h>
 
 typedef void* type_t; //any data type
 

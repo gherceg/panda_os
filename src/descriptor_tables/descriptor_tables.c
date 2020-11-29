@@ -2,6 +2,7 @@
 #include "../tools.h"
 #include "descriptor_tables.h"
 #include "../interrupts/isr.h"
+#include <stddef.h>
 
 extern void gdt_flush(size_t);
 extern void idt_flush(size_t);

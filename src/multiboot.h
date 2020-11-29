@@ -2,6 +2,7 @@
 #define MULTIBOOT_H
 
 #include "tools.h"
+#include <stddef.h>
 
 #define MULTIBOOT_FLAG_MEM     0x001
 #define MULTIBOOT_FLAG_DEVICE  0x002

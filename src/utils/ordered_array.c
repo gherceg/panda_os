@@ -1,6 +1,7 @@
 
 #include "ordered_array.h"
 #include "../memory/kheap.h"
+#include <stddef.h>
 
 int8 standard_lessthan_predicate(type_t a, type_t b) {
     return (a<b)?1:0;

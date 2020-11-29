@@ -1,6 +1,7 @@
 #include "kheap.h"
 #include "paging.h"
 #include "../screen/monitor.h"
+#include <stddef.h>
 
 #define PAGE_SIZE 0x1000
 

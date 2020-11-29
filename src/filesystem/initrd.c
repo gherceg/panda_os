@@ -1,5 +1,6 @@
 
 #include "initrd.h"
+#include <stddef.h>
 
 initrd_header_t *initrd_header;    
 initrd_file_header_t *file_headers;

@@ -5,6 +5,7 @@
 #include "../tools.h"
 #include "../utils/ordered_array.h"
 #include "paging.h"
+#include <stddef.h>
 
 /**
  * The kernel heap is necessary for dynamic memory allocation

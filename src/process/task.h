@@ -3,6 +3,7 @@
 
 #include "../tools.h"
 #include "../memory/paging.h"
+#include <stddef.h>
 
 /**
  * A task/process stores information needed to properly stop/start the process in case of interrupts and/or context switching

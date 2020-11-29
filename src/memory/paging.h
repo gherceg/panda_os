@@ -4,6 +4,7 @@
 
 #include "../tools.h"
 #include "../interrupts/isr.h"
+#include <stddef.h>
 
 /**
  * The Memory Managemment Unit (MMU) is responsible for mapping the virtual address space to the physical address space

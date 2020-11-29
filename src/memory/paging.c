@@ -3,6 +3,7 @@
 #include "kheap.h"
 #include "../tools.h"
 #include "../screen/monitor.h"
+#include <stddef.h>
 
 page_directory_t *kernel_directory=0;
 page_directory_t *current_directory=0;

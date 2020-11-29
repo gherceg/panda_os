@@ -2,6 +2,7 @@
 #include "../memory/paging.h"
 #include "../memory/kheap.h"
 #include "../screen/monitor.h"
+#include <stddef.h>
 
 
 // current running stack

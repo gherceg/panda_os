@@ -5,6 +5,7 @@
 #include "../tools.h"
 #include "../memory/kheap.h"
 #include "fs.h"
+#include <stddef.h>
 
 /**
  * Initialize Ram Disc (initrd) is used to create a simple filesystem in memory for the kernel to use on startup

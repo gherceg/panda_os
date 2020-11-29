@@ -1,6 +1,7 @@
 
 #include "dttp.h"
 #include "mem.h"
+#include <stddef.h>
 
 void memcpy(uint8 *dest, const uint8 *src, size_t len) {
     const uint8 *sp = (const uint8 *)src;

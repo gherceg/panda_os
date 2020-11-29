@@ -3,6 +3,7 @@
 #define TABLE_H
 
 #include "../tools.h"
+#include <stddef.h>
 
 void init_descriptor_tables();
 
